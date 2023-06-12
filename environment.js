@@ -1,34 +1,33 @@
-// 创建一个XMLHttpRequest对象
-var xmlhttp = new XMLHttpRequest();
+fetchData1('JSON/Route.json')
 
-// 设置回调函数，当读取完成时执行
-xmlhttp.onreadystatechange = function () {
-    if (this.readyState === 4 && this.status === 200) {
-        // 将文件内容以字符串形式保存
-        var csvData = this.responseText;
+function fetchData1(url) {
+    // 创建一个XMLHttpRequest对象
+    var xmlhttp = new XMLHttpRequest();
 
-        // 调用处理CSV数据的函数
-        processData(csvData);
-    }
-};
+    // 设置回调函数，当读取完成时执行
+    xmlhttp.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            // 将响应的JSON数据解析为JavaScript对象
+            var jsonData = JSON.parse(this.responseText);
+            // 调用处理JSON数据的回调函数
+            processJSON1(jsonData);
+        }
+    };
 
-// 打开CSV文件
-xmlhttp.open("GET", 'CSV/CarKind.csv', true);
+    // 打开JSON文件
+    xmlhttp.open("GET", url, true);
 
-// 发送请求
-xmlhttp.send();
+    // 发送请求
+    xmlhttp.send();
+}
 
-// 处理CSV数据的函数
-function processData(csvData) {
-    // 将CSV数据按行分割为数组
-    var lines = csvData.split("\n");
+let Route = null
 
-    // 遍历每一行数据
-    for (var i = 0; i < lines.length; i++) {
-        // 将每一行按逗号分割为数组
-        var values = lines[i].split(",");
-
-        // 在控制台打印每一行的数据
-        console.log(values);
-    }
+// 处理JSON数据的回调函数
+function processJSON1(jsonData) {
+    // 在控制台打印JSON数据
+    // console.log(jsonData['TrainInfos']);
+    Route = jsonData  // console.log(trains[i]);
+    
+    // 在这里可以进行其他操作，根据需要处理JSON数据
 }
