@@ -45,23 +45,27 @@ function processJSON(jsonData) {
     // 在控制台打印JSON数据
     // console.log(jsonData['TrainInfos']);
     let trains = jsonData['TrainInfos'];
-    var train = null;
+    let train = null;
+    let all_trains_data = []    
+
     for (let i = 0; i < trains.length - 1; i++) {
-        if (trains[i]['Train'] == '2') {
-            train = trains[i];
-            calculateSpaceTime(train);
-            console.log(train);
-        }
+        // if (trains[i]['Train'] != '') {
+        //     train = trains[i];
+        //     train_data = CalculateSpaceTime(train);
+        //     all_trains_data.push(train_data);
+            
+        // }
         // console.log(trains[i]);
         // console.log(trains[i]['Train']);
         // calculateSpaceTime(trains[i]);
 
     }
-    // 在这里可以进行其他操作，根据需要处理JSON数据
+    draw_diagram();
+    // console.log(all_trains_data);
 }
 
-function calculateSpaceTime(train) {
-    let trains_data = [];                        // 台鐵各車次時刻表轉換整理後資料
+function CalculateSpaceTime(train) {
+    let _trains_data = [];                        // 台鐵各車次時刻表轉換整理後資料
     let after_midnight_data = [];                 // 跨午夜車次的資料
 
     let train_id = train['Train'];                // 車次代碼
@@ -83,9 +87,18 @@ function calculateSpaceTime(train) {
 
     let passing_stations = findPassingStations(timetable, line, line_dir);
 
-    df_time_space = EstimateTimeSpace(timetable_dict, passing_stations, over_night_stn);
+    let estimate_time_space = EstimateTimeSpace(timetable_dict, passing_stations);
+
+    let operation_lines = TimeSpaceToOperationLines(estimate_time_space);
+
+    Object.entries(operation_lines).forEach(([key, value]) => {
+        _trains_data.push([key, train_id, car_class, line, value]);
+    })
+
+    return _trains_data;
 }
 
+// 查詢車次會「停靠與通過」的所有車站
 function findPassingStations(timetable, line, line_dir) {
     let start_station = timetable[0]['Station'];
     let end_station = timetable[timetable.length - 1]['Station'];
@@ -260,25 +273,15 @@ function findPassingStations(timetable, line, line_dir) {
     }
 
     return _passing_stations;
-
 }
 
-function EstimateTimeSpace(timetable, passing_stations, over_night_stn) {
+// 推算車次會通過的所有車站到站與離站時間
+function EstimateTimeSpace(timetable, passing_stations) {
     let _estimate_time_space = {};
     let index = 0;
-    // let station = [];
-    // let station_id = [];
-    // let time = [];
-    // let loc = [];
-    // let stop_station_order = [];
     let timetable_stations = Object.keys(timetable);
-    // for (let item of timetable) {
-    //     timetable_stations.push(item['Station']);
-    // }
     
-   
-   
-
+    // 將起終點中間歷經的停靠與通過車站均找出，存到字典
     for (let [StationId, StationName, LocationKM, KM] of passing_stations) {
         if (timetable_stations.includes(StationId)) {
             let ARRTime = parseFloat(SVG_X_Axis[timetable[StationId][0]].ax1);
@@ -287,34 +290,23 @@ function EstimateTimeSpace(timetable, passing_stations, over_night_stn) {
 
             _estimate_time_space[index] = [StationId, StationName, parseFloat(KM), ARRTime, Order];
             _estimate_time_space[index += 1] = [StationId, StationName, parseFloat(KM), DEPTime, Order];
-            index += 1;
-            // station_id.push(StationId);
-            // station.push(StationName);
-            // loc.push(parseFloat(KM));
-            // time.push(ARRTime);
-            // stop_station_order.push(Order);
-
-            // station_id.push(StationId);
-            // station.push(StationName);
-            // loc.push(parseFloat(KM));
-            // time.push(DEPTime);
-            // stop_station_order.push(Order);
+            index += 1;           
         } else {
             _estimate_time_space[index] = [StationId, StationName, parseFloat(KM), NaN, -1];
             index += 1;
-            // station_id.push(StationId);
-            // station.push(StationName);
-            // loc.push(parseFloat(KM));
-            // time.push(NaN);
-            // stop_station_order.push(-1);
         }
     }
+
+    // 環島、跨午夜車次處理
     let after_midnight_row_index = -1;
     let last_time_value = -1;
+
     Object.entries(_estimate_time_space).forEach(([key, value]) => {
+        // 環島車次處理
         if (value[0] == "1001"){
             value[0] = "1000";
         }
+        // 跨午夜車次處理(一般車次所有的時間都是越來越大，但跨午夜車次會有一筆資料時間開始變小，這裡要找出是哪一筆資料？)
         if (!isNaN(value[3])){
             if (value[3] < last_time_value){
                 after_midnight_row_index = key;
@@ -323,161 +315,51 @@ function EstimateTimeSpace(timetable, passing_stations, over_night_stn) {
         }        
     })
 
-    Object.entries(_estimate_time_space).forEach(([key, value]) => {
-        if (key >= after_midnight_row_index){
-            value[3] += 2880;
-        }
-    })
+    // 跨午夜車次處理：將超過午夜的時間一律加上 2880
+    if (after_midnight_row_index != -1){
+        Object.entries(_estimate_time_space).forEach(([key, value]) => {
+            if (key >= after_midnight_row_index){
+                value[3] += 2880;
+            }
+        })
+    }  
 
+    // 將所有停靠與通過車站的時間都存到暫存陣列
     let interpolate = []
     Object.entries(_estimate_time_space).forEach(([key, value]) => {
         interpolate.push(value[3]);
     })
 
+    // 計算沒有時間的通過車站插補資料，計算插補資料的原因主要是為了各路線端點車站可能列車會直接通過，譬如北迴線有的列車會直接通過蘇澳新，必須要計算出大致的通過時間
     const interpolatedArray = linearInterpolation(interpolate);
     Object.entries(_estimate_time_space).forEach(([key, value]) => {
         value[3] = interpolatedArray[key];
     })
 
-    // let _df_estimate_time_space = new dfd.DataFrame({
-    //     "Station": station,
-    //     "Time": time,
-    //     "Loc": loc,
-    //     "StationID": station_id,
-    //     "StopStation": stop_station_order
-    // });
-
-    // _df_estimate_time_space = _df_estimate_time_space.replace("1001", "1000")
-
-    // if (passing_stations[passing_stations.length - 1][0] == "1001") {
-    //     let row_index = _df_estimate_time_space.query(_df_estimate_time_space["StationID"].eq('1001')).index;
-
-    //     for (let item of row_index) {
-    //         _df_estimate_time_space.set_value(item, 'StationID', "1000");
-    //     }
-    // }
-
-    // let row_index = _df_estimate_time_space.query(_df_estimate_time_space["StationID"].eq(over_night_stn)).index;
-    // let row_index = _df_estimate_time_space.loc[_df_estimate_time_space['StationID'] == over_night_stn].index;
-    
-    // let mid_night_index = -1;
-
-    // for (let [index, row] of _df_estimate_time_space.loc[_df_estimate_time_space['StationID'] == over_night_stn].iterrows()) {
-    //     if (!isNaN(row['Time'])) {
-    //         if (row['Time'] < last_time_value) {
-    //             mid_night_index = index;
-    //         }
-    //         last_time_value = row['Time'];
-    //     }
-    // }
-
-    // row_index = row_index.filter(x => x >= mid_night_index);
-
-    // if (row_index.length > 0) {
-    //     for (let [index, row] of _df_estimate_time_space.iterrows()) {
-    //         if (!isNaN(row['Time'])) {
-    //             if (index >= row_index[0]) {
-    //                 _df_estimate_time_space.set_value(index, "Time", row['Time'] + 2880);
-    //             }
-    //         }
-    //     }
-    // }
-
-    // _df_estimate_time_space.interpolate({ method: 'linear' }, inplace = True);
-    // _df_estimate_time_space.reset_index(drop = True);
-
     return _estimate_time_space;
 }
 
-function TimeSpaceToOperationLines(df_estimate_time_space) {
-    // 資料初始化
-    let _operation_lines = {};
-    let _after_midnight_train = {};
-    let stop_order = 0;
-
+// 將車次通過車站時間轉入各營運路線的資料，設定通過車站的順序碼，並且推算跨午夜車次的距離
+function TimeSpaceToOperationLines(estimate_time_space) {
     // 初始化_operation_lines物件
+    let _operation_lines = {};
     for (let key in LinesStations) {
-        _operation_lines[key] = [[], [], [], [], [], []];
+        _operation_lines[key] = [];
     }
 
     // 迭代df_estimate_time_space的每一列
-    for (let index = 0; index < df_estimate_time_space.length; index++) {
-        let row = df_estimate_time_space[index];
-
-        for (let key in LinesStations) {
-            if (LinesStations[key].includes(row['StationID'])) {
-                _operation_lines[key][0].push(row['Station']);
-                _operation_lines[key][1].push(row['StationID']);
-                _operation_lines[key][2].push(row['Time']);
-                _operation_lines[key][3].push(parseFloat(LinesStations[key][row['StationID']]['SVGYAXIS']));
-                _operation_lines[key][4].push(row['StopStation']);
-                _operation_lines[key][5].push(stop_order);
+    Object.entries(estimate_time_space).forEach(([key, value]) => {
+        Object.entries(LinesStations).forEach(([key1, value1]) => {
+            if (value[0] in value1){
+                _operation_lines[key1].push([value[1], value[0], value[3], LinesStations[key1][value[0]]['SVGYAXIS'], value[4], parseInt(key)]);
             }
-        }
+        })
+    })
 
-        stop_order++;
-    }
-
-    // 將_operation_lines物件轉換為DataFrame
-    for (let key in _operation_lines) {
-        let value = _operation_lines[key];
-
-        _operation_lines[key] = new pd.DataFrame({
-            "Station": value[0],
-            "StationID": value[1],
-            "Time": value[2],
-            "Loc": value[3],
-            "StopStation": value[4],
-            "StopOrder": value[5]
-        });
-    }
-
-    // 資料刪減整理，如果營運路線沒有資料就移除
-    let drop_key = [];
-    for (let key in _operation_lines) {
-        let value = _operation_lines[key];
-
-        if (value.shape[0] == 0) { // 資料不足者直接刪除
-            drop_key.push(key);
-
-            // 將未通過山海線（竹南、彰化二車站順序為相連）車次的營運路線刪除(可能可以移除)
-            let index_temp = value[(value.StationID == '3360') || (value.StationID == '1250')].index.tolist();
-            if (index_temp.toString() == [0, 1, 2].toString() || index_temp.toString() == [0, 1, 2, 3].toString()) {
-                drop_key.push(key);
-            }
-        }
-    }
-
-    // 刪除drop_key中的元素
-    for (let item of drop_key) {
-        delete _operation_lines[item];
-    }
-
-    // 跨午夜車次處理
-    for (let key in _operation_lines) {
-        let value = _operation_lines[key];
-        let index_label = value.query('Time >= 2880').index.tolist();
-
-        if (index_label.length >= 2) {
-            let row_value = ['跨午夜', "-1", 2880, NaN, "Y", value.loc[index_label[0], 'StopOrder'] - 1];
-            let df = _insert_row(index_label[0], value, row_value); // 插入一個虛擬的跨午夜車站
-
-            df = df.set_index('Time').interpolate({ method: 'index' }); // 依據時間估計跨午夜的位置
-            df = df.reset_index();
-
-            let df_after_midnight_train = df.slice(index_label[0]);
-            // df_after_midnight_train.loc[:, 'Time'] = df_after_midnight_train.loc[:, 'Time'].map(x => x - 2880); // 每一個時間資料都減2880
-
-            _after_midnight_train[key] = df_after_midnight_train;
-        }
-    }
-
-    return {
-        "Operation_Lines": _operation_lines,
-        "After_Midnight_Train": _after_midnight_train
-    };
+    return _operation_lines;
 }
 
+// 陣列資料插補
 function linearInterpolation(array) {
     for (let i = 0; i < array.length; i++) {
         if (isNaN(array[i])) {
@@ -515,4 +397,13 @@ function linearInterpolation(array) {
     }
 
     return array;
+}
+
+function FindUncontinuousStation(line){
+    let _index_temp = [];
+    Object.entries(_operation_lines[line]).forEach(([key, value]) => {        
+        if (value[1] == '3360' || value[1] == '1250')
+            _index_temp.push(key);
+    })
+    return _index_temp;
 }
