@@ -49,22 +49,19 @@ function processJSON(jsonData) {
     let all_trains_data = []    
 
     for (let i = 0; i < trains.length - 1; i++) {
-        // if (trains[i]['Train'] != '') {
-        //     train = trains[i];
-        //     train_data = CalculateSpaceTime(train);
-        //     all_trains_data.push(train_data);
+        if (trains[i]['Train'] != '') {
+            train = trains[i];
+            train_data = calculate_space_time(train);
+            all_trains_data.push(train_data);
             
-        // }
-        // console.log(trains[i]);
-        // console.log(trains[i]['Train']);
-        // calculateSpaceTime(trains[i]);
-
+        }
     }
-    draw_diagram();
+    draw_diagram_background(all_trains_data);
+    draw_train_path(all_trains_data);
     // console.log(all_trains_data);
 }
 
-function CalculateSpaceTime(train) {
+function calculate_space_time(train) {
     let _trains_data = [];                        // 台鐵各車次時刻表轉換整理後資料
     let after_midnight_data = [];                 // 跨午夜車次的資料
 
@@ -85,11 +82,11 @@ function CalculateSpaceTime(train) {
         timetable_dict[TimeInfos.Station] = [TimeInfos.ARRTime, TimeInfos.DEPTime, TimeInfos.Station, TimeInfos.Order];
     }
 
-    let passing_stations = findPassingStations(timetable, line, line_dir);
+    let passing_stations = find_passing_stations(timetable, line, line_dir);
 
-    let estimate_time_space = EstimateTimeSpace(timetable_dict, passing_stations);
+    let estimate_time_space = estimate_timeSpace(timetable_dict, passing_stations);
 
-    let operation_lines = TimeSpaceToOperationLines(estimate_time_space);
+    let operation_lines = time_space_to_operation_lines(estimate_time_space);
 
     Object.entries(operation_lines).forEach(([key, value]) => {
         _trains_data.push([key, train_id, car_class, line, value]);
@@ -99,7 +96,7 @@ function CalculateSpaceTime(train) {
 }
 
 // 查詢車次會「停靠與通過」的所有車站
-function findPassingStations(timetable, line, line_dir) {
+function find_passing_stations(timetable, line, line_dir) {
     let start_station = timetable[0]['Station'];
     let end_station = timetable[timetable.length - 1]['Station'];
 
@@ -276,13 +273,13 @@ function findPassingStations(timetable, line, line_dir) {
 }
 
 // 推算車次會通過的所有車站到站與離站時間
-function EstimateTimeSpace(timetable, passing_stations) {
+function estimate_timeSpace(timetable, passing_stations) {
     let _estimate_time_space = {};
     let index = 0;
     let timetable_stations = Object.keys(timetable);
     
     // 將起終點中間歷經的停靠與通過車站均找出，存到字典
-    for (let [StationId, StationName, LocationKM, KM] of passing_stations) {
+    for (const [StationId, StationName, LocationKM, KM] of passing_stations) {
         if (timetable_stations.includes(StationId)) {
             let ARRTime = parseFloat(SVG_X_Axis[timetable[StationId][0]].ax1);
             let DEPTime = parseFloat(SVG_X_Axis[timetable[StationId][1]].ax1);
@@ -309,7 +306,7 @@ function EstimateTimeSpace(timetable, passing_stations) {
         // 跨午夜車次處理(一般車次所有的時間都是越來越大，但跨午夜車次會有一筆資料時間開始變小，這裡要找出是哪一筆資料？)
         if (!isNaN(value[3])){
             if (value[3] < last_time_value){
-                after_midnight_row_index = key;
+                after_midnight_row_index = parseInt(key);
             }
             last_time_value = value[3];
         }        
@@ -318,7 +315,7 @@ function EstimateTimeSpace(timetable, passing_stations) {
     // 跨午夜車次處理：將超過午夜的時間一律加上 2880
     if (after_midnight_row_index != -1){
         Object.entries(_estimate_time_space).forEach(([key, value]) => {
-            if (key >= after_midnight_row_index){
+            if (parseInt(key) >= after_midnight_row_index){
                 value[3] += 2880;
             }
         })
@@ -340,7 +337,7 @@ function EstimateTimeSpace(timetable, passing_stations) {
 }
 
 // 將車次通過車站時間轉入各營運路線的資料，設定通過車站的順序碼，並且推算跨午夜車次的距離
-function TimeSpaceToOperationLines(estimate_time_space) {
+function time_space_to_operation_lines(estimate_time_space) {
     // 初始化_operation_lines物件
     let _operation_lines = {};
     for (let key in LinesStations) {
