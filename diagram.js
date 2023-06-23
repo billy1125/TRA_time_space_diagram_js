@@ -2,16 +2,16 @@ let hours = DiagramHours;
 let date = Date().toLocaleString();
 let diagram_objects = {};
 
-function draw_diagram_background(all_trains_data) {
+function draw_diagram_background(line_kind) {
     Object.entries(OperationLines).forEach(([key, value]) => {
-        // if (key == 'LINE_WS') {
+        if (key == line_kind) {
             let width = 1200 * (hours.length - 1) + 100;
             let height = value['MAX_X_AXIS'];
             let draw = SVG().addTo('body').size(width, height + 75);
             let text_spacing_factor = 500;
-            let title = `${value['NAME']} 日期：，運行圖均來自台鐵公開資料所分析，僅供參考，正確資料與實際運轉狀況請以台鐵網站或公告為主。台鐵JSON Open Data轉檔運行圖程式版本：1.3.7 轉檔時間：${date}`;
+            let title = `${value['NAME']} 運行圖均來自台鐵公開資料所分析，僅供參考，正確資料與實際運轉狀況請以台鐵網站或公告為主。轉檔時間：${date}`;
 
-            add_text(draw, title, 5, 0, null);
+            // add_text(draw, title, 5, 0, null);
 
             for (let i = 0; i < hours.length; i++) {
                 let x = 50 + i * 1200;
@@ -80,7 +80,7 @@ function draw_diagram_background(all_trains_data) {
             })
 
             diagram_objects[key] = draw;
-        // }
+        }
     })
 }
 
@@ -89,26 +89,55 @@ function draw_train_path(all_trains_data) {
         for (const [line_kind, train_no, train_kind, line, value] of train_data) {
             // console.log([line_kind, train_no, train_kind, line, value]);
             if (value.length > 2) {
-                path = "M";
-                coordinates = [];
-                for (const [dsc, id, time, loc, stop, order] of value) {
-                    if (stop != -1 || LinesStationsForBackground[line_kind][id]['TERMINAL'] == 'Y') {
-                        // console.log([dsc, id, time, loc, stop, order] );
-                        let x = time * 10 - 1200 * DiagramHours[0] + 50;
-                        let y = loc + 50;
-                        x = Math.round((x + Number.EPSILON) * 100) / 100;
-                        y = Math.round((y + Number.EPSILON) * 100) / 100;
-                        path += x.toString() + ',' + y.toString() + ' ';
-                        coordinates.push([x, y]);
-                    }
-                }
-                let text_position = calculate_text_position(coordinates, CarKind[train_kind]);
-                // console.log(line_kind);
-                // console.log(path);
-                add_path(diagram_objects[line_kind], line_kind, train_no, path, text_position, CarKind[train_kind]);
+                let uncontinuous_index = find_uncontinuous_index(value);
+                let section_start_value = value.slice(0, uncontinuous_index);
+                let section_end_value = value.slice(uncontinuous_index, value.length);
+
+                set_path(line_kind, train_no, train_kind, section_start_value);
+                if (section_end_value.length > 3)
+                    set_path(line_kind, train_no + "-End", train_kind, section_end_value);
             }
         }
     }
+}
+
+function find_uncontinuous_index(value) {
+    let order_next = value[0][5];
+    let index = 0;
+
+    for (const [dsc, id, time, loc, stop, order] of value) {
+        if (order == order_next) {
+            order_next += 1;
+            index += 1;
+        }
+        else {
+            break
+        }
+    }
+    return index;
+}
+
+function set_path(line_kind, train_no, train_kind, value) {
+    let path = "M";
+    let coordinates = [];
+    let style = CarKind[train_kind];
+    if (typeof (style) == "undefined") {
+        style = "special";
+    }
+
+    for (const [dsc, id, time, loc, stop, order] of value) {
+        if (stop != -1 || LinesStationsForBackground[line_kind][id]['TERMINAL'] == 'Y') {
+            let x = time * 10 - 1200 * DiagramHours[0] + 50;
+            let y = loc + 50;
+            x = Math.round((x + Number.EPSILON) * 100) / 100;
+            y = Math.round((y + Number.EPSILON) * 100) / 100;
+            path += x.toString() + ',' + y.toString() + ' ';
+            coordinates.push([x, y]);
+        }
+    }
+
+    let text_position = calculate_text_position(coordinates, style);
+    add_path(diagram_objects[line_kind], line_kind, train_no, path, text_position, style);
 }
 
 function calculate_text_position(coordinates, color) {
