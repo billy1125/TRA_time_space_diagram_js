@@ -1,39 +1,16 @@
-// json 檔案處理總程序
-function process_json(json_data, train_no_input, line_kind) {
-    const trains = json_data['TrainInfos'];
-    let train = null;
-    let all_trains_data = [];
-    let train_no = "";
-    const total_trains = trains.length - 1;
-
-    for (let i = 0; i < total_trains; i++) {
-        train_no_input.length === 0 ? train_no = trains[i]['Train'] : train_no = train_no_input;
-        // console.log(train_no)
-        if (trains[i]['Train'] == train_no) {
-            train = trains[i];
-            train_data = calculate_space_time(train, line_kind);
-            all_trains_data.push(train_data);
-        }       
-
-    }
-    draw_diagram_background(line_kind);
-    draw_train_path(all_trains_data);
-}
-
-
 // 台鐵車次資料轉檔
 function calculate_space_time(train, line_kind) {
-    let _trains_data = [];                        // 台鐵各車次時刻表轉換整理後資料
-    let after_midnight_data = [];                 // 跨午夜車次的資料
+    // const after_midnight_data = [];                 // 跨午夜車次的資料
+    const train_id = train['Train'];                 // 車次代碼
+    const car_class = train['CarClass'];             // 車種代碼
+    const line = train['Line'];                      // 山線1、海線2、成追線3，東部幹線則為0
+    // const over_night_stn = train['OverNightStn'];   // 跨午夜車站
+    const line_dir = train['LineDir'];               // 順行1、逆行2
+    const timetable = train['TimeInfos'];
 
-    let train_id = train['Train'];                // 車次代碼
-    let car_class = train['CarClass'];            // 車種代碼
-    let line = train['Line'];                     // 山線1、海線2、成追線3，東部幹線則為0
-    let over_night_stn = train['OverNightStn'];   // 跨午夜車站
-    let line_dir = train['LineDir'];              // 順行1、逆行2
-
-    let timetable = train['TimeInfos'];
-    let timetable_dict = {};
+    let timetable_dict = {};                         // 來自JSON的車次時刻表
+    let _trains_data = [];                           // JSON時刻表轉換整理後資料
+    
     // for (let i = 0; i < train.TimeInfos.length - 1; i++) {
     //     TimeInfos = train.TimeInfos[i];
     //     timetable[i] = [TimeInfos.Station, TimeInfos.ARRTime, TimeInfos.DEPTime, TimeInfos.Station, TimeInfos.Order];
@@ -43,11 +20,9 @@ function calculate_space_time(train, line_kind) {
         timetable_dict[TimeInfos.Station] = [TimeInfos.ARRTime, TimeInfos.DEPTime, TimeInfos.Station, TimeInfos.Order];
     }
 
-    let passing_stations = find_passing_stations(timetable, line, line_dir);
-
-    let estimate_time_space = estimate_timeSpace(timetable_dict, passing_stations);
-
-    let operation_lines = time_space_to_operation_lines(estimate_time_space, line_kind);
+    const passing_stations = find_passing_stations(timetable, line, line_dir);                 // 找出車次「停靠與通過」的所有車站
+    const estimate_time_space = estimate_timeSpace(timetable_dict, passing_stations);          // 整理車次通過的所有車站到站與離站時間
+    const operation_lines = time_space_to_operation_lines(estimate_time_space, line_kind);     // 將車次的通過車站、到離站時間轉入各營運路線
 
     Object.entries(operation_lines).forEach(([key, value]) => {
         _trains_data.push([key, train_id, car_class, line, value]);
@@ -58,7 +33,7 @@ function calculate_space_time(train, line_kind) {
 
 // 查詢車次會「停靠與通過」的所有車站
 function find_passing_stations(timetable, line, line_dir) {
-    let start_station = timetable[0]['Station'];
+    const start_station = timetable[0]['Station'];
     let end_station = timetable[timetable.length - 1]['Station'];
 
     let _passing_stations = [];
@@ -233,11 +208,11 @@ function find_passing_stations(timetable, line, line_dir) {
     return _passing_stations;
 }
 
-// 推算車次會通過的所有車站到站與離站時間
+// 整理車次會通過的所有車站到站與離站時間
 function estimate_timeSpace(timetable, passing_stations) {
     let _estimate_time_space = {};
     let index = 0;
-    let timetable_stations = Object.keys(timetable);
+    const timetable_stations = Object.keys(timetable);
 
     // 將起終點中間歷經的停靠與通過車站均找出，存到字典
     for (const [StationId, StationName, LocationKM, KM] of passing_stations) {
@@ -297,7 +272,7 @@ function estimate_timeSpace(timetable, passing_stations) {
     return _estimate_time_space;
 }
 
-// 將車次通過車站時間轉入各營運路線的資料，設定通過車站的順序碼，並且推算跨午夜車次的距離
+// 將車次通過車站時間轉入各營運路線的資料，設定通過車站的順序碼
 function time_space_to_operation_lines(estimate_time_space, line_kind) {
     // 初始化_operation_lines物件
     let _operation_lines = {};
@@ -357,11 +332,11 @@ function linearInterpolation(array) {
     return array;
 }
 
-function FindUncontinuousStation(line) {
-    let _index_temp = [];
-    Object.entries(_operation_lines[line]).forEach(([key, value]) => {
-        if (value[1] == '3360' || value[1] == '1250')
-            _index_temp.push(key);
-    })
-    return _index_temp;
-}
+// export function FindUncontinuousStation(line) {
+//     let _index_temp = [];
+//     Object.entries(_operation_lines[line]).forEach(([key, value]) => {
+//         if (value[1] == '3360' || value[1] == '1250')
+//             _index_temp.push(key);
+//     })
+//     return _index_temp;
+// }
