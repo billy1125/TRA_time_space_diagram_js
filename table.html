@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台鐵運行圖編輯</title>
+    <title>台鐵運行圖編輯器</title>
     <style>
         table {
-            width: 80%;
+            width: 100%;
         }
 
         td {
@@ -18,16 +18,28 @@
         thead,
         tfoot {
             background-color: #333;
-            color: #fff;
+            color: #ffffff;
         }
     </style>
 </head>
 
 <body>
+    <h1>台鐵運行圖編輯器</h1>
+
+    <div>
+        車次號：<input id="train_no" placeholder="請輸入一個車次號" type="text"><br />
+        順逆行：<select id="line_dir"></select><br />
+        經由路線：<select id="line"></select><br />
+        列車種類：<select id="car_kind"></select>
+        <button id="add_new_train" onclick="add_new_row()">新增一個車次</button>
+        <button id="add_new_train" onclick="test()">新增一個車次</button>
+    </div>
+
     <div>
         <table>
             <thead>
                 <tr>
+                    <th>刪除</th>
                     <th>車次</th>
                     <th>順逆行</th>
                     <th>經由路線</th>
@@ -61,6 +73,57 @@
     </div>
 
 </body>
+<script src="js/table_var.js"></script>
 <script src="js/table.js" defer></script>
+
+<script>
+    set_select("line_dir", line_dir_kind);
+    set_select("line", line_kind);
+    set_select("car_kind", car_kind);
+
+    function set_select(id, data) {
+        const select = document.getElementById(id);
+
+        data.forEach(function (optionData) {
+            var option = document.createElement("option");
+            option.value = optionData.id;
+            option.text = optionData.id + " - " + optionData.dsc;
+            select.appendChild(option);
+        });
+    }
+
+    function add_new_row() {
+        train_no = document.getElementById('train_no');
+        line_dir = document.getElementById('line_dir');
+        line = document.getElementById('line');
+        car_class = document.getElementById('car_class');
+        mainTable = document.getElementById('main-table');
+        let row = document.createElement('tr');
+        // row.innerHTML = item.Train;
+        row.addEventListener('click', function () {
+            // showDetails(item.Train);
+        });
+        mainTable.appendChild(row);
+
+        // 車次欄位
+        add_textbox_td(row, train_no.value, "sel-input-" + train_no.value);
+
+        // 順逆行欄位
+        add_td_selection(row, line_dir_kind, "sel-dir-" + train_no.value);
+        select_update("sel-dir-" + train_no.value, line_dir.value);
+
+        // 經由路線
+        add_td_selection(row, line_kind, "sel-line-" + train_no.value);
+        select_update("sel-line-" + train_no.value, line.value);
+
+        // 車種欄位
+        add_td_selection(row, car_kind, "sel-car-" + train_no.value);
+        select_update("sel-car-" + train_no.value, car_class.value);
+    }
+
+    function test(){
+        console.log(trains_timetable)
+    }
+</script>
 
 </html>

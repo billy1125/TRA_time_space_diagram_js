@@ -9,9 +9,9 @@ function draw_diagram_background(line_kind) {
             let height = value['MAX_X_AXIS'];
             let draw = SVG().addTo('body').size(width, height + 75);
             let text_spacing_factor = 500;
-            let title = `${value['NAME']} 運行圖均來自台鐵公開資料所分析，僅供參考，正確資料與實際運轉狀況請以台鐵網站或公告為主。轉檔時間：${date}`;
+            let title = `${value['NAME']} 。運行圖繪製完成時間：${date}`;
 
-            // add_text(draw, title, 5, 0, null);
+            add_text(draw, title, 5, 0, null);
 
             for (let i = 0; i < hours.length; i++) {
                 let x = 50 + i * 1200;
@@ -35,7 +35,6 @@ function draw_diagram_background(line_kind) {
                         break;
                     y += text_spacing_factor;
                 }
-
 
                 if (i != hours.length - 1) {
                     for (let j = 0; j < 5; j++) {

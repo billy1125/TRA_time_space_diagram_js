@@ -1,17 +1,3 @@
-// 副表数据
-// var detailTable = [
-//     { id: 1, details: 'Details for John' },
-//     { id: 2, details: 'Details for Alice' },
-//     { id: 3, details: 'Details for Bob' }
-// ];
-
-// 主表数据
-// var mainTable = [
-//     { id: 1, name: 'John' },
-//     { id: 2, name: 'Alice' },
-//     { id: 3, name: 'Bob' }
-// ];
-
 let jsonData = null;
 let trains = null;
 let trains_timetable = [];
@@ -26,9 +12,9 @@ function fetchData(url) {
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            jsonData = JSON.parse(this.responseText);
             // console.log(jsonData)
-            initial_table(jsonData);
+            initial_table(JSON.parse(this.responseText));
+            display_data();
         }
     };
     xmlhttp.open("GET", url, true);
@@ -38,19 +24,17 @@ function fetchData(url) {
 function initial_table(jsonData) {
 
     trains = jsonData.TrainInfos;
-    
+
     for (const iterator of trains) {
         trains_timetable.push({ "Train": iterator.Train, "TimeTable": iterator.TimeInfos });
     }
 
     mainTableContainer = document.getElementById('main-table');
-    detailTableContainer = document.getElementById('detail-table');
-
-    display_data();
+    detailTableContainer = document.getElementById('detail-table');    
 }
 
 function display_data() {
-   
+
     mainTableContainer.innerHTML = '';  // 清空主表内容
 
     let startIndex = (currentPage - 1) * itemsPerPage;
@@ -65,14 +49,40 @@ function display_data() {
             showDetails(item.Train);
         });
         mainTableContainer.appendChild(row);
-        add_td(row, item.Train);
-        add_td(row, item.LineDir);
-        add_td(row, item.Line);
-        add_td(row, item.CarClass);
+
+        // 刪除欄位
+        add_button_td(row, "刪除", item.Train);
+
+        // 車次欄位
+        add_textbox_td(row, item.Train, "sel-input-" + item.Train);
+        // add_text_td(row, item.Train);
+
+        // 順逆行欄位
+        add_td_selection(row, line_dir_kind, "sel-dir-" + item.Train);
+        select_update("sel-dir-" + item.Train, item.LineDir);
+
+        // 經由路線
+        add_td_selection(row, line_kind, "sel-line-" + item.Train);
+        select_update("sel-line-" + item.Train, item.Line);
+
+        // 車種欄位
+        add_td_selection(row, car_kind, "sel-car-" + item.Train);
+        select_update("sel-car-" + item.Train, item.CarClass);
     });
 
     // 更新頁碼
     updatePagination();
+}
+
+function select_update(id, select_value) {
+    var selection = document.getElementById(id);
+
+    for (var i = 0; i < selection.options.length; i++) {
+        if (selection.options[i].value === select_value) {
+            selection.options[i].selected = true;
+            break;
+        }
+    }
 }
 
 // 顯示副表
@@ -88,19 +98,79 @@ function showDetails(id) {
     details.TimeTable.forEach(function (item) {
         let row = document.createElement('tr');
         detailTableContainer.appendChild(row);
-        add_td(row, item.Order);
-        add_td(row, item.Station);
-        add_td(row, item.ARRTime);
-        add_td(row, item.DEPTime);
+
+        add_text_td(row, item.Order);
+
+        // add_text_td(row, item.Station);
+        add_td_selection(row, stations_kind, "sel-station-" + item.Order);
+        select_update("sel-station-" + item.Order, item.Station);
+
+        add_textbox_td(row, item.ARRTime, "");
+        add_textbox_td(row, item.DEPTime, "");
 
         // detailTableContainer.appendChild(detailRow);
     });
 }
 
-function add_td(row_element, inner_text) {
+// 增加文字型態儲存格
+function add_text_td(row_element, inner_text) {
     let td = document.createElement('td');
     td.innerHTML = inner_text;
     row_element.appendChild(td);
+}
+
+// 增加按鍵型態儲存格
+function add_button_td(row_element, inner_text, dom_id) {
+    let td = document.createElement('td');
+    row_element.appendChild(td);
+
+    let button = document.createElement("button");
+    button.innerHTML = inner_text;
+    if (dom_id !== '')
+        button.setAttribute('id', "sel-input-" + dom_id);
+
+    td.appendChild(button);
+
+    button.addEventListener('click', function () {
+        let check = window.confirm(`您確定要刪除第 ${dom_id} 車次？`);
+        if (check == true) {
+            let details = trains_timetable.find(function (item) {
+                // return item.Train === id;
+            });
+        }
+    });
+}
+
+// 增加選項儲存格
+function add_td_selection(row_element, selection_kind, dom_id) {
+    let td = document.createElement('td');
+    row_element.appendChild(td);
+
+    let select = document.createElement("select");
+    if (dom_id !== '')
+        select.setAttribute('id', dom_id);
+
+    selection_kind.forEach(function (optionData) {
+        var option = document.createElement("option");
+        option.value = optionData.id;
+        option.text = optionData.id + " - " + optionData.dsc;
+        select.appendChild(option);
+    });
+    td.appendChild(select);
+}
+
+// 增加編輯文字框儲存格
+function add_textbox_td(row_element, input_text, dom_id) {
+    let td = document.createElement('td');
+    row_element.appendChild(td);
+
+    let input = document.createElement("input");
+    if (dom_id !== '')
+        input.setAttribute('id', dom_id);
+    input.setAttribute('type', 'text');
+    input.setAttribute('value', input_text);
+
+    td.appendChild(input);
 }
 
 function updatePagination() {
@@ -142,7 +212,7 @@ function updatePagination() {
         firstPageLink.addEventListener('click', function (e) {
             e.preventDefault();
             currentPage = parseInt(this.dataset.page);
-            displayData();
+            display_data();
         });
         pagination.appendChild(firstPageLink);
 
@@ -166,7 +236,7 @@ function updatePagination() {
         pageLink.addEventListener('click', function (e) {
             e.preventDefault();
             currentPage = parseInt(this.dataset.page);
-            displayData();
+            display_data();
         });
 
         pagination.appendChild(pageLink);
@@ -192,7 +262,7 @@ function updatePagination() {
         lastPageLink.addEventListener('click', function (e) {
             e.preventDefault();
             currentPage = parseInt(this.dataset.page);
-            displayData();
+            display_data();
         });
         pagination.appendChild(lastPageLink);
     }
@@ -204,7 +274,7 @@ function updatePagination() {
         e.preventDefault();
         if (currentPage < totalPages) {
             currentPage++;
-            displayData();
+            display_data();
         }
     });
     pagination.appendChild(nextLink);

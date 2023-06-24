@@ -28,7 +28,7 @@ function execute() {
             process_json(data, train_no, line_kind);
         };
         reader.readAsText(file);
-    }else{
+    } else {
         btn_execute.disabled = false;
         window.alert("請選擇正確的JSON格式檔案！");
     }
@@ -66,9 +66,8 @@ function process_json(json_data, train_no_input, line_kind) {
     let train = null;
     let all_trains_data = [];
     let train_no = "";
-    const total_trains = trains.length - 1;
 
-    for (let i = 0; i < total_trains; i++) {
+    for (let i = 0; i < trains.length - 1; i++) {
         train_no_input.length === 0 ? train_no = trains[i]['Train'] : train_no = train_no_input;
         // console.log(train_no)
         if (trains[i]['Train'] == train_no) {
@@ -76,7 +75,6 @@ function process_json(json_data, train_no_input, line_kind) {
             train_data = calculate_space_time(train, line_kind);
             all_trains_data.push(train_data);
         }
-
     }
     draw_diagram_background(line_kind);
     draw_train_path(all_trains_data);
