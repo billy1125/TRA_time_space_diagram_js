@@ -1,0 +1,108 @@
+line {
+    stroke-width: 0.3;
+    font-weight: 100;
+}
+
+svg {
+    font-family: Tahoma;
+    font-size: 14px;
+}
+
+.hour {
+    fill: #2e2e1f;
+}
+
+.hour_midnight {
+    fill: #ff0000;
+    font-weight: bold;
+}
+
+.hour_line {
+    stroke: #000000;
+}
+
+.min10 {
+    fill: #adad85;
+}
+
+.min10_line {
+    stroke: #a18cfc;
+}
+
+.min30 {
+    fill: #5c5c3d;
+}
+
+.min30_line {
+    stroke: #0105e0;
+}
+
+.station {   
+    fill: #000000;
+}
+
+.station_line {
+    stroke: #000000;
+}
+
+.station_noserv {
+    fill: #bfbfbf;
+}
+
+.station_noserv_line {
+    stroke: #bfbfbf;
+}
+
+path {
+    stroke-linecap: round;
+    stroke-width: 2.5;
+    fill: none
+}
+
+.taroko {
+    stroke: #20b2aa;
+}
+
+.puyuma {
+    stroke: #ff0000;
+}
+
+.tze_chiang {
+    stroke: #ffa500;
+}
+
+.tze_chiang_diesel {
+    stroke: #ffd700;
+}
+
+.emu1200 {
+    stroke: #ff008c;
+}
+
+.emu300 {
+    stroke: #ff4444;
+}
+
+.emu3000 {
+    stroke: #000000;
+}
+
+.chu_kuang {
+    stroke: #FAAB82;
+}
+
+.local {
+    stroke: #0000ff;
+}
+
+.fu_hsing {
+    stroke: #00bfff;
+}
+
+.ordinary {
+    stroke: #ff1493;
+}
+
+.special {
+    stroke: #ff1493;
+}
