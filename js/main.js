@@ -3,6 +3,7 @@ const btn_download = document.getElementById("btn_download");
 
 btn_download.addEventListener("click", download_file);
 
+// 使用者操作與上傳檔案
 function execute() {
     btn_execute.disabled = true;
 
@@ -19,22 +20,47 @@ function execute() {
     const file = file_input.files[0];
 
     if (typeof file !== "undefined") {
-        // 讀取檔案
+        
         const reader = new FileReader();
         reader.onload = function (event) {
             const contents = event.target.result;
-            const data = JSON.parse(contents);
-
-            process_json(data, train_no, line_kind);
+            json_to_trains_data(JSON.parse(contents), train_no, line_kind);  // 將JSON檔案轉換成時間空間資料
         };
         reader.readAsText(file);
     } else {
         btn_execute.disabled = false;
         window.alert("請選擇正確的JSON格式檔案！");
     }
-
 }
 
+// JSON檔處理，將JSON檔案轉換成時間空間資料
+function json_to_trains_data(json_data, train_no_input, line_kind) {
+    let train = null;
+    let all_trains_data = [];
+    let train_no = "";
+
+    for (let i = 0; i < json_data['TrainInfos'].length - 1; i++) {
+        train_no_input.length === 0 ? train_no = json_data['TrainInfos'][i]['Train'] : train_no = train_no_input;
+        // console.log(train_no)
+        if (json_data['TrainInfos'][i]['Train'] == train_no) {
+            train = json_data['TrainInfos'][i];
+            train_data = calculate_space_time(train, line_kind);  // 車次資料處理，轉換成時間空間資料
+            all_trains_data.push(train_data);
+        }
+    }    
+    draw(line_kind, all_trains_data); 
+}
+
+// 繪製運行圖
+function draw(line_kind, all_trains_data){
+    draw_diagram_background(line_kind);   // 繪製運行圖底圖(基礎時間與車站線)
+    draw_train_path(all_trains_data);     // 繪製每一個車次線
+
+    btn_execute.disabled = false;
+    btn_download.disabled = false;
+}
+
+// 運行圖下載
 function download_file() {
     var e = document.getElementById("line_kind");
     var line_kind = e.options[e.selectedIndex].text;
@@ -59,25 +85,4 @@ function download_file() {
         downloadLink.click();
         URL.revokeObjectURL(downloadLink.href);
     }
-}
-
-function process_json(json_data, train_no_input, line_kind) {
-    const trains = json_data['TrainInfos'];
-    let train = null;
-    let all_trains_data = [];
-    let train_no = "";
-
-    for (let i = 0; i < trains.length - 1; i++) {
-        train_no_input.length === 0 ? train_no = trains[i]['Train'] : train_no = train_no_input;
-        // console.log(train_no)
-        if (trains[i]['Train'] == train_no) {
-            train = trains[i];
-            train_data = calculate_space_time(train, line_kind);
-            all_trains_data.push(train_data);
-        }
-    }
-    draw_diagram_background(line_kind);
-    draw_train_path(all_trains_data);
-    btn_execute.disabled = false;
-    btn_download.disabled = false;
 }

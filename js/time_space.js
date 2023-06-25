@@ -1,4 +1,4 @@
-// 台鐵車次資料轉檔
+// 處理車次資料
 function calculate_space_time(train, line_kind) {
     // const after_midnight_data = [];                 // 跨午夜車次的資料
     const train_id = train['Train'];                 // 車次代碼
@@ -8,14 +8,9 @@ function calculate_space_time(train, line_kind) {
     const line_dir = train['LineDir'];               // 順行1、逆行2
     const timetable = train['TimeInfos'];
 
-    let timetable_dict = {};                         // 來自JSON的車次時刻表
-    let _trains_data = [];                           // JSON時刻表轉換整理後資料
+    let timetable_dict = {};                         // 暫存車次時刻表物件
+    let _trains_data = [];                           // 時刻表轉換後的時間空間資料，包括各個營運路線
     
-    // for (let i = 0; i < train.TimeInfos.length - 1; i++) {
-    //     TimeInfos = train.TimeInfos[i];
-    //     timetable[i] = [TimeInfos.Station, TimeInfos.ARRTime, TimeInfos.DEPTime, TimeInfos.Station, TimeInfos.Order];
-    // }
-
     for (let TimeInfos of train.TimeInfos) {
         timetable_dict[TimeInfos.Station] = [TimeInfos.ARRTime, TimeInfos.DEPTime, TimeInfos.Station, TimeInfos.Order];
     }
@@ -214,7 +209,7 @@ function estimate_timeSpace(timetable, passing_stations) {
     let index = 0;
     const timetable_stations = Object.keys(timetable);
 
-    // 將起終點中間歷經的停靠與通過車站均找出，存到字典
+    // 將起終點中間歷經的停靠與通過車站均找出
     for (const [StationId, StationName, LocationKM, KM] of passing_stations) {
         if (timetable_stations.includes(StationId)) {
             let ARRTime = parseFloat(SVG_X_Axis[timetable[StationId][0]].ax1);
@@ -274,8 +269,8 @@ function estimate_timeSpace(timetable, passing_stations) {
 
 // 將車次通過車站時間轉入各營運路線的資料，設定通過車站的順序碼
 function time_space_to_operation_lines(estimate_time_space, line_kind) {
-    // 初始化_operation_lines物件
     let _operation_lines = {};
+
     for (let key in LinesStations) {
         _operation_lines[key] = [];
     }
@@ -292,7 +287,7 @@ function time_space_to_operation_lines(estimate_time_space, line_kind) {
     return _operation_lines;
 }
 
-// 陣列資料插補
+// 計算陣列資料插補的函式
 function linearInterpolation(array) {
     for (let i = 0; i < array.length; i++) {
         if (isNaN(array[i])) {
