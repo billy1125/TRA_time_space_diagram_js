@@ -1,36 +1,14 @@
-let jsonData = null;
-let trains = null;
-let trains_timetable = [];
 let mainTableContainer = null;
 let detailTableContainer = null;
 let itemsPerPage = 20;              // 每一個分頁要顯示的資料數量
 let currentPage = 1;                // 現在的頁碼
 
-fetchData('tests/20230623.json');
+initial_table();
+display_data();
 
-function fetchData(url) {
-    var xmlhttp = new XMLHttpRequest();
-    xmlhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            // console.log(jsonData)
-            initial_table(JSON.parse(this.responseText));
-            display_data();
-        }
-    };
-    xmlhttp.open("GET", url, true);
-    xmlhttp.send();
-}
-
-function initial_table(jsonData) {
-
-    trains = jsonData.TrainInfos;
-
-    for (const iterator of trains) {
-        trains_timetable.push({ "Train": iterator.Train, "TimeTable": iterator.TimeInfos });
-    }
-
+function initial_table() {
     mainTableContainer = document.getElementById('main-table');
-    detailTableContainer = document.getElementById('detail-table');    
+    detailTableContainer = document.getElementById('detail-table');
 }
 
 function display_data() {
@@ -41,7 +19,7 @@ function display_data() {
     let endIndex = startIndex + itemsPerPage;
 
     // 顯示特定頁面的資料
-    var currentPageData = trains.slice(startIndex, endIndex);
+    var currentPageData = master_train_info.slice(startIndex, endIndex);
     currentPageData.forEach(function (item) {
         let row = document.createElement('tr');
         // row.innerHTML = item.Train;
@@ -91,7 +69,7 @@ function showDetails(id) {
     detailTableContainer.innerHTML = '';
 
     // 以車次號查詢副表內容
-    let details = trains_timetable.find(function (item) {
+    let details = detail_time_info.find(function (item) {
         return item.Train === id;
     });
 
@@ -119,7 +97,7 @@ function add_text_td(row_element, inner_text) {
     row_element.appendChild(td);
 }
 
-// 增加按鍵型態儲存格
+// 增加按鍵型態儲存格(刪除)
 function add_button_td(row_element, inner_text, dom_id) {
     let td = document.createElement('td');
     row_element.appendChild(td);
@@ -127,16 +105,15 @@ function add_button_td(row_element, inner_text, dom_id) {
     let button = document.createElement("button");
     button.innerHTML = inner_text;
     if (dom_id !== '')
-        button.setAttribute('id', "sel-input-" + dom_id);
-
+        button.setAttribute('id', "sel-btn-" + dom_id);
     td.appendChild(button);
 
     button.addEventListener('click', function () {
         let check = window.confirm(`您確定要刪除第 ${dom_id} 車次？`);
         if (check == true) {
-            let details = trains_timetable.find(function (item) {
-                // return item.Train === id;
-            });
+            delete_train_map(dom_id);
+            update_tables();
+            display_data();
         }
     });
 }
@@ -176,7 +153,7 @@ function add_textbox_td(row_element, input_text, dom_id) {
 function updatePagination() {
     pagination.innerHTML = '';
 
-    var totalPages = Math.ceil(trains.length / itemsPerPage);
+    var totalPages = Math.ceil(master_train_info.length / itemsPerPage);
 
     var prevLink = document.createElement('a');
     prevLink.href = '#';
@@ -280,4 +257,24 @@ function updatePagination() {
     pagination.appendChild(nextLink);
 }
 
+function file_save() {
+    let json_object = { TrainInfos: [] };
 
+    trains_map.forEach(function (value, key) {
+        json_object.TrainInfos.push(value);
+    });
+
+    const json = JSON.stringify(json_object);
+    download(json, 'export.json', 'text/plain');
+
+    update_tables();
+    display_data();
+}
+
+function download(content, fileName, contentType) {
+    var a = document.createElement("a");
+    var file = new Blob([content], { type: contentType });
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+}

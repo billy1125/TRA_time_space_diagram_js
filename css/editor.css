@@ -1,0 +1,29 @@
+table {
+    width: 100%;
+    text-align: center;
+}
+
+td {
+    border: 1px solid #333;
+}
+
+thead,
+tfoot {
+    background-color: #333;
+    color: #ffffff;
+}
+
+#pagination {
+    text-align: center;
+    background-color: #00f2ff;
+}
+
+#train {
+    width: 60%;
+    float: left;
+}
+
+#train_time_table {
+    width: 40%;
+    float: left;
+}
