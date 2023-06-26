@@ -5,60 +5,43 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台鐵時刻表JSON公開資料線上轉換鐵路運行圖程式 ver 0.1</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>鐵路運行圖編輯</title>
+    <style>
+        #main {
+            width: 60%;
+            float: left;
+        }
+
+        #sider {
+            width: 40%;
+            float: left;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>台鐵時刻表JSON公開資料線上轉換鐵路運行圖程式 <span>ver 0.1</span></h1>
-    <p><a
-            href="https://ods.railway.gov.tw/tra-ods-web/ods/download/dataResource/railway_schedule/JSON/list">台鐵時刻表JSON公開資料下載</a>
-    </p>
-    <p>本網站繪製的運行圖均來自台鐵公開資料或使用者自行產生的資料所繪製，並非實際鐵路運作實況，僅供參考，正確資料與實際運轉狀況請以台鐵網站或公告為主。</p>
-    <input type="file" id="file_input" accept=".json">
-    <input id="train_no" placeholder="你可以選擇特定車次號" type="text">
-    <select id="line_kind"></select>
-    <button id="btn_execute" onclick="execute()">台鐵JSON轉檔</button>
-    <button id="btn_download" onclick="" disabled>下載運行圖</button>
-    <a href="css/style.css">運行圖CSS樣式檔下載</a>
+    <h1>鐵路運行圖編輯</h1>
+    <p>本網站繪製的運行圖均來自台鐵公開資料或使用者自行產生的資料所繪製，並非實際鐵路運作實況，所提供的運行圖僅供參考，正確資料與實際運轉狀況請以台鐵網站或公告為主。</p>
     <hr>
+    <div id="main">
+        <fieldset style="background: #f6f8ff; border: 2px solid #4238ca;">
+            <legend>功能</legend>
+            <button onclick="location.href='diagram.html'">台鐵時刻表JSON公開資料轉運行圖</button>
+            <button onclick="location.href='editor.html'">台鐵運行圖編輯器(開發中)</button>
+        </fieldset>
+    </div>
+    <div id="sider">
+        <fieldset style="background: #f6f8ff; border: 2px solid #4238ca;">
+            <legend>相關資料下載</legend>
+            <ul>
+                <li><a
+                        href="https://ods.railway.gov.tw/tra-ods-web/ods/download/dataResource/railway_schedule/JSON/list">台鐵時刻表JSON公開資料下載</a>
+                </li>
+                <li><a href="css/style.css">運行圖CSS樣式檔下載</a></li>
+            </ul>
+        </fieldset>
+    </div>
+    <p>版本 ver 0.1</p>
 </body>
-
-<script src="js/svg.js/svg.min.js" defer></script>
-<script src="js/env_var.js" defer></script>
-<script src="js/main.js"></script>
-<script src="js/time_space.js"></script>
-<script src="js/diagram.js" defer></script>
-
-<script>
-    // 取得父元素
-    const parentElement = document.getElementById("line_kind");
-    const selections = {
-        "LINE_WN": "西部幹線北段(基隆-竹南)",
-        "LINE_WM": "西部幹線台中線(竹南-彰化，經苗栗)",
-        "LINE_WSEA": "西部幹線海岸線(竹南-彰化，經大甲)",
-        "LINE_WS": "西部幹線南段(彰化-高雄)",
-        "LINE_P": "屏東線(高雄-枋寮)",
-        "LINE_S": "南迴線(枋寮-台東)",
-        "LINE_T": "台東線(花蓮-台東)",
-        "LINE_N": "北迴線(蘇澳新-花蓮)",
-        "LINE_I": "宜蘭線(八堵-蘇澳)",
-        "LINE_PX": "平溪深澳線(八斗子-菁桐)",
-        "LINE_LJ": "內灣線(新竹-內灣)",
-        "LINE_NW": "六家線(新竹-六家)",
-        "LINE_J": "集集線(二水-車埕)",
-        "LINE_SL": "沙崙線(中洲-沙崙)"
-    }
-
-    // 建立要新增的子元素
-    Object.entries(selections).forEach(([key, value]) => {
-        const childElement = document.createElement("option");
-        childElement.textContent = value;
-        childElement.setAttribute('value', key);
-
-        // 將子元素新增到父元素中
-        parentElement.appendChild(childElement);
-    })
-</script>
 
 </html>
