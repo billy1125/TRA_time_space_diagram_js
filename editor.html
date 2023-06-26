@@ -9,7 +9,7 @@
 </head>
 
 <body>
-    <h1>台鐵運行圖編輯器</h1>
+    <h1>台鐵運行圖編輯器(開發中)</h1>
     <div id="header">
         <fieldset style="background: #f6f8ff; border: 2px solid #4238ca;">
             <legend>功能</legend>
@@ -30,7 +30,7 @@
                     <th>列車種類</th>
                 </tr>
             </thead>
-            <tbody id="main-table">
+            <tbody id="master-table">
                 <!-- <tr>
                     <td>The table body</td>
                     <td>with two columns</td>
@@ -47,8 +47,7 @@
             順逆行：<select id="line_dir"></select><br />
             經由路線：<select id="line"></select><br />
             列車種類：<select id="car_class"></select>
-            <button id="add_new_train" onclick="add_new_row()">新增一個車次</button>
-            <button id="add_new_train" onclick="test()">新增一個車次</button>
+            <button id="add_new_train" onclick="add_new_train()">新增一個車次</button>
         </fieldset>
     </div>
     <div id="train_time_table">
@@ -67,76 +66,14 @@
 
         <fieldset style="background: #f6f8ff; border: 2px solid #4238ca;">
             <legend>新增車站</legend>
-            順逆行：<select id=""></select><br />
-            經由路線：<select id=""></select><br />
-            列車種類：<select id=""></select>
-            <button id="add_new_train" onclick="add_new_row()">新增一個車站</button>
+            車站：<select id="stations"></select>
+            <button id="add_new_train" onclick="add_new_station()">新增一個車站</button>
         </fieldset>
     </div>
 </body>
-<script src="js/table_var.js"></script>
 <script src="js/model/trains.js" defer></script>
-<script src="js/table.js" defer></script>
-
-<script>
-    set_select("line_dir", line_dir_kind);
-    set_select("line", line_kind);
-    set_select("car_class", car_kind);
-
-    function set_select(id, data) {
-        const select = document.getElementById(id);
-
-        data.forEach(function (optionData) {
-            var option = document.createElement("option");
-            option.value = optionData.id;
-            option.text = optionData.id + " - " + optionData.dsc;
-            select.appendChild(option);
-        });
-    }
-
-    function add_new_row() {
-        const train_no = document.getElementById('train_no');
-
-        if (train_no.value !== "") {
-            const line_dir = document.getElementById('line_dir');
-            const line = document.getElementById('line');
-            const car_class = document.getElementById('car_class');
-            const mainTable = document.getElementById('main-table');
-
-            const row = document.createElement('tr');
-            // row.innerHTML = item.Train;
-            row.addEventListener('click', function () {
-                // showDetails(item.Train);
-            });
-            mainTable.appendChild(row);
-
-            // 刪除欄位
-            add_button_td(row, "刪除", train_no.value);
-
-            // 車次欄位
-            add_textbox_td(row, train_no.value, "sel-input-" + train_no.value);
-
-            // 順逆行欄位
-            add_td_selection(row, line_dir_kind, "sel-dir-" + train_no.value);        
-
-            // 經由路線
-            add_td_selection(row, line_kind, "sel-line-" + train_no.value);        
-
-            // 車種欄位
-            add_td_selection(row, car_kind, "sel-car-" + train_no.value);
-
-            select_update("sel-line-" + train_no.value, line.value);
-            select_update("sel-dir-" + train_no.value, line_dir.value);
-            select_update("sel-car-" + train_no.value, car_class.value);
-        }
-        else{
-            window.alert("請輸入一個新的車次號！")
-        }
-    }
-
-    function test() {
-        console.log(trains_timetable)
-    }
-</script>
+<script src="js/editor_var.js"></script>
+<script src="js/editor.js" defer></script>
+<script src="js/editor_control.js" defer></script>
 
 </html>

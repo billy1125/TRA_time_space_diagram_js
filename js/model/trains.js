@@ -1,8 +1,9 @@
 let trains_map = null;          // 列車資料集
 let master_train_info = [];     // 主表資料：列車基本資訊
 let detail_time_info = [];      // 副表資料：列車時刻表
+let select_row_index = "";
 
-// fetchData('tests/20230628.json');
+fetchData('tests/20230628.json');
 
 function fetchData(url) {
     var xmlhttp = new XMLHttpRequest();
@@ -10,8 +11,8 @@ function fetchData(url) {
         if (this.readyState == 4 && this.status == 200) {
             // console.log(jsonData)
             initial_trains(JSON.parse(this.responseText));
-            initial_table();
-            display_data();
+            initial_editor();
+            // display_data();
         }
     };
     xmlhttp.open("GET", url, true);
@@ -23,7 +24,7 @@ function initial_trains(jsonData) {
     for (const iterator of jsonData.TrainInfos) {
         trains_map.set(iterator.Train, { "Train": iterator.Train, "LineDir": iterator.LineDir, "Line": iterator.Line, "CarClass": iterator.CarClass, "TimeInfos": iterator.TimeInfos });
     }
- 
+
     update_tables();
 }
 
@@ -39,8 +40,7 @@ function file_upload() {
         reader.onload = function (event) {
             const contents = event.target.result;
             initial_trains(JSON.parse(contents));
-            initial_table();
-            display_data();
+            initial_editor();
         };
         reader.readAsText(file);
     } else {
@@ -65,16 +65,15 @@ function delete_train_map(key) {
     return trains_map.delete(key);
 }
 
-function update_train_map(train, line_dir, line, car_class, time_info) {
+function add_train_map(train, line_dir, line, car_class) {
     // trains_map.forEach(function (value, key) {
     //     console.log(key + ' = ' + value.LineDir);
     // });
     // return trains_map.delete(key);
-    if (trains_map.has(train)){
-        trains_map.set(train, { "Train": train, "LineDir": line_dir, "Line": line, "CarClass": car_class, "TimeInfos": time_info });
+    if (!trains_map.has(train)) {
+        trains_map.set(train, { "Train": train, "LineDir": line_dir, "Line": line, "CarClass": car_class });
         return true;
-    }else{
+    } else {
         return false;
-    }       
+    }
 }
-

@@ -1,17 +1,21 @@
-let mainTableContainer = null;
-let detailTableContainer = null;
+let mainTableContainer = document.getElementById('master-table');
+let detailTableContainer = document.getElementById('detail-table');
 let itemsPerPage = 20;              // 每一個分頁要顯示的資料數量
 let currentPage = 1;                // 現在的頁碼
 
-initial_table();
-display_data();
+initial_editor();
 
-function initial_table() {
-    mainTableContainer = document.getElementById('main-table');
-    detailTableContainer = document.getElementById('detail-table');
+// 編輯器初始化
+function initial_editor() {
+    set_select("line_dir", line_dir_kind);
+    set_select("line", line_kind);
+    set_select("car_class", car_kind);
+    set_select("stations", stations_kind);
+
+    display_master();
 }
 
-function display_data() {
+function display_master() {
 
     mainTableContainer.innerHTML = '';  // 清空主表内容
 
@@ -22,17 +26,19 @@ function display_data() {
     var currentPageData = master_train_info.slice(startIndex, endIndex);
     currentPageData.forEach(function (item) {
         let row = document.createElement('tr');
+        row.setAttribute('id', item.Train);
         // row.innerHTML = item.Train;
-        row.addEventListener('click', function () {
-            showDetails(item.Train);
+        row.addEventListener('click', function () { 
+            select_hightlight(item.Train, row);              
+            display_detail(item.Train);
         });
         mainTableContainer.appendChild(row);
 
         // 刪除欄位
-        add_button_td(row, "刪除", item.Train);
+        add_button_td(row, "刪除", "sel-del-" + item.Train);
 
         // 車次欄位
-        add_textbox_td(row, item.Train, "sel-input-" + item.Train);
+        add_textbox_td(row, item.Train, "sel-train-" + item.Train);
         // add_text_td(row, item.Train);
 
         // 順逆行欄位
@@ -52,6 +58,16 @@ function display_data() {
     updatePagination();
 }
 
+function select_hightlight(id, row){
+    let last_row = document.getElementById(select_row_index);
+            
+    if (last_row != null)
+        if (last_row.id != id)  
+            last_row.setAttribute('style', '');
+    
+    row.setAttribute('style', 'background-color:#F00');
+}
+
 function select_update(id, select_value) {
     var selection = document.getElementById(id);
 
@@ -64,7 +80,10 @@ function select_update(id, select_value) {
 }
 
 // 顯示副表
-function showDetails(id) {
+function display_detail(id) {
+    
+    select_row_index = id;
+
     // 清空副表
     detailTableContainer.innerHTML = '';
 
@@ -105,7 +124,7 @@ function add_button_td(row_element, inner_text, dom_id) {
     let button = document.createElement("button");
     button.innerHTML = inner_text;
     if (dom_id !== '')
-        button.setAttribute('id', "sel-btn-" + dom_id);
+        button.setAttribute('id', dom_id);
     td.appendChild(button);
 
     button.addEventListener('click', function () {
@@ -113,7 +132,7 @@ function add_button_td(row_element, inner_text, dom_id) {
         if (check == true) {
             delete_train_map(dom_id);
             update_tables();
-            display_data();
+            display_master();
         }
     });
 }
@@ -150,6 +169,7 @@ function add_textbox_td(row_element, input_text, dom_id) {
     td.appendChild(input);
 }
 
+// 更新頁碼
 function updatePagination() {
     pagination.innerHTML = '';
 
@@ -162,7 +182,7 @@ function updatePagination() {
         e.preventDefault();
         if (currentPage > 1) {
             currentPage--;
-            display_data();
+            display_master();
         }
     });
     pagination.appendChild(prevLink);
@@ -189,7 +209,7 @@ function updatePagination() {
         firstPageLink.addEventListener('click', function (e) {
             e.preventDefault();
             currentPage = parseInt(this.dataset.page);
-            display_data();
+            display_master();
         });
         pagination.appendChild(firstPageLink);
 
@@ -213,7 +233,7 @@ function updatePagination() {
         pageLink.addEventListener('click', function (e) {
             e.preventDefault();
             currentPage = parseInt(this.dataset.page);
-            display_data();
+            display_master();
         });
 
         pagination.appendChild(pageLink);
@@ -239,7 +259,7 @@ function updatePagination() {
         lastPageLink.addEventListener('click', function (e) {
             e.preventDefault();
             currentPage = parseInt(this.dataset.page);
-            display_data();
+            display_master();
         });
         pagination.appendChild(lastPageLink);
     }
@@ -251,30 +271,20 @@ function updatePagination() {
         e.preventDefault();
         if (currentPage < totalPages) {
             currentPage++;
-            display_data();
+            display_master();
         }
     });
     pagination.appendChild(nextLink);
 }
 
-function file_save() {
-    let json_object = { TrainInfos: [] };
+// 設定新增車次的選單
+function set_select(id, data) {
+    const select = document.getElementById(id);
 
-    trains_map.forEach(function (value, key) {
-        json_object.TrainInfos.push(value);
+    data.forEach(function (optionData) {
+        var option = document.createElement("option");
+        option.value = optionData.id;
+        option.text = optionData.id + " - " + optionData.dsc;
+        select.appendChild(option);
     });
-
-    const json = JSON.stringify(json_object);
-    download(json, 'export.json', 'text/plain');
-
-    update_tables();
-    display_data();
-}
-
-function download(content, fileName, contentType) {
-    var a = document.createElement("a");
-    var file = new Blob([content], { type: contentType });
-    a.href = URL.createObjectURL(file);
-    a.download = fileName;
-    a.click();
 }
