@@ -17,7 +17,8 @@ function initial_editor() {
 
 function display_master() {
 
-    mainTableContainer.innerHTML = '';  // 清空主表内容
+    mainTableContainer.innerHTML = '';   // 清空主表内容
+    detailTableContainer.innerHTML = ''; // 清空副表
 
     let startIndex = (currentPage - 1) * itemsPerPage;
     let endIndex = startIndex + itemsPerPage;
@@ -29,16 +30,18 @@ function display_master() {
         row.setAttribute('id', item.Train);
         // row.innerHTML = item.Train;
         row.addEventListener('click', function () { 
-            select_hightlight(item.Train, row);              
+            
+            select_hightlight(item.Train, row);        
+            selected_train = selected_train = {"Train": item.Train, "LineDir": item.LineDir, "Line": item.Line, "CarClass": item.CarClass};      
             display_detail(item.Train);
         });
         mainTableContainer.appendChild(row);
 
         // 刪除欄位
-        add_button_td(row, "刪除", "sel-del-" + item.Train);
+        add_button_td(row, "刪除", item.Train);
 
         // 車次欄位
-        add_textbox_td(row, item.Train, "sel-train-" + item.Train);
+        add_textbox_td(row, item.Train, "input-train-" + item.Train);
         // add_text_td(row, item.Train);
 
         // 順逆行欄位
@@ -59,7 +62,7 @@ function display_master() {
 }
 
 function select_hightlight(id, row){
-    let last_row = document.getElementById(select_row_index);
+    let last_row = document.getElementById(selected_train.Train);
             
     if (last_row != null)
         if (last_row.id != id)  
@@ -81,18 +84,18 @@ function select_update(id, select_value) {
 
 // 顯示副表
 function display_detail(id) {
+
+    detailTableContainer.innerHTML = ''; // 清空副表
     
-    select_row_index = id;
     var select_train_no = document.getElementById("select-train-no");
     select_train_no.innerHTML = id;
-
-    // 清空副表
-    detailTableContainer.innerHTML = '';
 
     // 以車次號查詢副表內容
     let details = detail_time_info.find(function (item) {
         return item.Train === id;
     });
+
+    selected_train.TimeInfos = details;
 
     details.TimeTable.forEach(function (item) {
         let row = document.createElement('tr');
@@ -104,8 +107,8 @@ function display_detail(id) {
         add_td_selection(row, stations_kind, "sel-station-" + item.Order);
         select_update("sel-station-" + item.Order, item.Station);
 
-        add_textbox_td(row, item.ARRTime, "");
-        add_textbox_td(row, item.DEPTime, "");
+        add_textbox_td(row, item.ARRTime, "input-arrtime-" + item.Order);
+        add_textbox_td(row, item.DEPTime, "input-deptime-" + item.Order);
 
         // detailTableContainer.appendChild(detailRow);
     });
@@ -126,7 +129,7 @@ function add_button_td(row_element, inner_text, dom_id) {
     let button = document.createElement("button");
     button.innerHTML = inner_text;
     if (dom_id !== '')
-        button.setAttribute('id', dom_id);
+        button.setAttribute('id', "sel-del-" + dom_id);
     td.appendChild(button);
 
     button.addEventListener('click', function () {
