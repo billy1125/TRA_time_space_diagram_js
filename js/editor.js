@@ -83,6 +83,8 @@ function select_update(id, select_value) {
 function display_detail(id) {
     
     select_row_index = id;
+    var select_train_no = document.getElementById("select-train-no");
+    select_train_no.innerHTML = id;
 
     // 清空副表
     detailTableContainer.innerHTML = '';

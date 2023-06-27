@@ -1,16 +1,20 @@
+body {
+    font-family: Tahoma, Verdana, sans-serif;
+}
+
 table {
     width: 100%;
     text-align: center;
 }
 
 td {
-    border: 1px solid #333;
+    border: 1px solid #4a4a4a;
 }
 
 thead,
 tfoot {
-    background-color: #333;
-    color: #ffffff;
+    background-color: #4a4a4a;
+    color: #95ffc5;
 }
 
 #pagination {
@@ -26,4 +30,12 @@ tfoot {
 #train_time_table {
     width: 40%;
     float: left;
+}
+
+#table-title {
+    font-size: 25px;
+    text-align: center;
+    color: #ffffff;
+    background: #333;
+    border: 1px solid #ffffff;
 }
