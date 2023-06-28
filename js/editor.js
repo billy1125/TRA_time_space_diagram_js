@@ -3,15 +3,15 @@ let currentPage = 1;                // 現在的頁碼
 
 const trains_data = new TrainsClass();
 
-// trains_data.fetchData('tests/20230628.json')
-//     .then((jsonData) => {
-//         trains_data.initial_trains(jsonData);
-//         initial_editor();
-//     })
-//     .catch((error) => {
-//         console.error(error);
-//     });
-initial_editor();
+trains_data.fetchData('tests/20230628.json')
+    .then((jsonData) => {
+        trains_data.initial_trains(jsonData);
+        initial_editor();
+    })
+    .catch((error) => {
+        console.error(error);
+    });
+// initial_editor();
 
 // 編輯器初始化
 function initial_editor() {
@@ -40,10 +40,13 @@ function display_master() {
             row.setAttribute('id', item.Train);
             // row.innerHTML = item.Train;
             row.addEventListener('click', function () {
+                const train_no = this.getAttribute("id"); // 取得點擊行的ID
+                trains_data.selected_train_no = train_no;
 
-                select_hightlight(item.Train, row);
-                trains_data.selected_train = { "Train": item.Train, "LineDir": item.LineDir, "Line": item.Line, "CarClass": item.CarClass };
-                display_detail(item.Train);
+                select_hightlight(train_no, row);
+
+                display_detail(train_no);
+                
             });
             mainTableContainer.appendChild(row);
 
@@ -71,14 +74,35 @@ function display_master() {
     updatePagination();
 }
 
+function check_is_update(train_no) {
+    const train_data = trains_data.trains_map.get(train_no);
+    const data_in_class = {
+        "LineDir": train_data.LineDir,
+        "Line": train_data.Line,
+        "CarClass": train_data.CarClass
+    };
+
+    const data_on_ui = {
+        "LineDir": document.getElementById("sel-dir-" + train_no).value,
+        "Line": document.getElementById("sel-line-" + train_no).value,
+        "CarClass": document.getElementById("sel-car-" + train_no).value
+    };
+    if (deepCompare(data_in_class, data_on_ui) == false) {
+        trains_data.update_train(train_no, data_on_ui.LineDir, data_on_ui.Line, data_on_ui.CarClass);
+    }
+}
+
 function select_hightlight(id, row) {
-    let last_row = document.getElementById(trains_data.selected_train.Train);
+    let last_row = document.getElementById(trains_data.last_selected_train_no);
 
     if (last_row != null)
-        if (last_row.id != id)
+        if (last_row.id != id){
+            check_is_update(last_row.id);
             last_row.setAttribute('style', '');
+        }
 
     row.setAttribute('style', 'background-color:#F00');
+    trains_data.last_selected_train_no = id;
 }
 
 function select_update(id, select_value) {
@@ -146,8 +170,8 @@ function add_button_td(row_element, inner_text, dom_id) {
     button.addEventListener('click', function () {
         let check = window.confirm(`您確定要刪除第 ${dom_id} 車次？`);
         if (check == true) {
-            delete_train_map(dom_id);
-            update_tables();
+            trains_data.delete_train_map(dom_id);
+
             display_master();
         }
     });
@@ -283,3 +307,29 @@ function set_select(id, data) {
         select.appendChild(option);
     });
 }
+
+function deepCompare(obj1, obj2) {
+    // 比較兩個物件的屬性數量
+    if (Object.keys(obj1).length !== Object.keys(obj2).length) {
+        return false;
+    }
+
+    // 遞迴比較兩個物件的屬性和值
+    for (let prop in obj1) {
+        if (obj1.hasOwnProperty(prop)) {
+            if (!obj2.hasOwnProperty(prop)) {
+                return false;
+            }
+            if (typeof obj1[prop] === "object" && typeof obj2[prop] === "object") {
+                if (!deepCompare(obj1[prop], obj2[prop])) {
+                    return false;
+                }
+            } else if (obj1[prop] !== obj2[prop]) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+

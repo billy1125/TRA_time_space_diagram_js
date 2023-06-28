@@ -4,6 +4,8 @@ class TrainsClass {
         this.master_train_info = [];     // 主表資料：列車基本資訊
         this.detail_time_info = [];      // 副表資料：列車時刻表
         this.selected_train = {};
+        this.selected_train_no = -1;
+        this.last_selected_train_no = -1;
     }
 
     fetchData(url) {
@@ -32,11 +34,11 @@ class TrainsClass {
         this.update_tables();
     }
 
-    clear_all_data(){
+    clear_all_data() {
         this.trains_map = new Map();
         this.master_train_info = [];
         this.detail_time_info = [];
-        this.selected_train = {};     
+        this.selected_train = {};
     }
 
     // 資料轉為主副表
@@ -52,28 +54,56 @@ class TrainsClass {
     }
 
     // 刪除資料
-    delete_train_map(key) {
-        return this.trains_map.delete(key);
-    }
-
-    // 新增車次
-    add_train_map(train, data) {
-        // trains_map.forEach(function (value, key) {
-        //     console.log(key + ' = ' + value.LineDir);
-        // });
-        // return trains_map.delete(key);
-        if (!this.trains_map.has(train)) {
-            this.trains_map.set(train, data);
+    delete_train_map(train_no) {
+        if (this.trains_map.has(train_no)) {
+            this.trains_map.delete(train_no)
+            this.update_tables();
             return true;
         } else
             return false;
     }
 
+    // 新增車次
+    add_train_map(train_no, data) {
+        if (!this.trains_map.has(train_no)) {
+            this.trains_map.set(train_no, data);
+            this.update_tables();
+            return true;
+        } else
+            return false;
+
+    }
+
     // 更新資料
-    update_train_map(train, data) {
-        console.log(this.trains_map.get(train))
-        if (this.trains_map.has(train) && this.trains_map.get(train) !== data) {
-            this.trains_map.set(train, data);
+    update_train_map(train_no, data) {
+        if (this.trains_map.has(train_no)) {
+            const train_data = this.trains_map.get(train_no);
+
+            this.trains_map.set(train_no, {
+                "Train": train_data.Train,
+                "LineDir": train_data.LineDir,
+                "Line": train_data.Line,
+                "CarClass": train_data.CarClass,
+                "TimeInfos": data
+            });
+            this.update_tables();
+            return true;
+        } else
+            return false;
+    }
+
+    update_train(train_no, line_dir, line, car_class) {
+        if (this.trains_map.has(train_no)) {
+            const train_data = this.trains_map.get(train_no);
+
+            this.trains_map.set(train_no, {
+                "Train": train_data.Train,
+                "LineDir": line_dir,
+                "Line": line,
+                "CarClass": car_class,
+                "TimeInfos": train_data.TimeInfos
+            });
+            this.update_tables();
             return true;
         } else
             return false;

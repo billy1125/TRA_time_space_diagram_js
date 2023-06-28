@@ -19,42 +19,52 @@ function add_new_train() {
         const line = document.getElementById('line');
         const car_class = document.getElementById('car_class');
 
-        trains_data.selected_train = { "Train": train_no.value, "LineDir": line_dir.value, "Line": line.value, "CarClass": car_class.value };
-        const train_id = train_no.value;
-        if (trains_data.add_train_map(train_no.value, trains_data.selected_train)) {
-            const row = document.createElement('tr');
-            row.setAttribute('id', train_no.value);
-            row.addEventListener('click', function () {
-                select_hightlight(train_id, row);
-                // trains_data.selected_train = { "Train": item.Train, "LineDir": item.LineDir, "Line": item.Line, "CarClass": item.CarClass };
-                display_detail(train_id);
-            });
-            mainTableContainer.appendChild(row);
-            // 改列的顏色
-            select_hightlight(train_no, row);
+        const results = trains_data.add_train_map(train_no.value, {
+            "Train": train_no.value,
+            "LineDir": line_dir.value,
+            "Line": line.value,
+            "CarClass": car_class.value,
+            "TimeInfos": []
+        });
+        // trains_data.selected_train = { "Train": train_no.value, "LineDir": line_dir.value, "Line": line.value, "CarClass": car_class.value };
+        // const train_id = train_no.value;
+        if (results) {
+            display_master();
+            // const row = document.createElement('tr');
+            // row.setAttribute('id', train_no.value);
+            // row.addEventListener('click', function () {
+            //     const id = this.getAttribute("id"); // 取得點擊行的ID
+            //     console.log(id);
+            //     select_hightlight(train_id, row);
+            //     // trains_data.selected_train = { "Train": item.Train, "LineDir": item.LineDir, "Line": item.Line, "CarClass": item.CarClass };
+            //     display_detail(train_id);
+            // });
+            // mainTableContainer.appendChild(row);
+            // // 改列的顏色
+            // select_hightlight(train_no, row);
 
-            // 刪除欄位
-            add_button_td(row, "刪除", train_no.value);
+            // // 刪除欄位
+            // add_button_td(row, "刪除", train_no.value);
 
-            // 車次欄位
-            add_textbox_td(row, train_no.value, "input-train-" + train_no.value);
+            // // 車次欄位
+            // add_textbox_td(row, train_no.value, "input-train-" + train_no.value);
 
-            // 順逆行欄位
-            add_td_selection(row, line_dir_kind, "sel-dir-" + train_no.value);
+            // // 順逆行欄位
+            // add_td_selection(row, line_dir_kind, "sel-dir-" + train_no.value);
 
-            // 經由路線
-            add_td_selection(row, line_kind, "sel-line-" + train_no.value);
+            // // 經由路線
+            // add_td_selection(row, line_kind, "sel-line-" + train_no.value);
 
-            // 車種欄位
-            add_td_selection(row, car_kind, "sel-car-" + train_no.value);
+            // // 車種欄位
+            // add_td_selection(row, car_kind, "sel-car-" + train_no.value);
 
-            select_update("sel-line-" + train_no.value, line.value);
-            select_update("sel-dir-" + train_no.value, line_dir.value);
-            select_update("sel-car-" + train_no.value, car_class.value);
+            // select_update("sel-line-" + train_no.value, line.value);
+            // select_update("sel-dir-" + train_no.value, line_dir.value);
+            // select_update("sel-car-" + train_no.value, car_class.value);
 
-            // 清空副表
-            detailTableContainer.innerHTML = '';
-            trains_data.update_tables();
+            // // 清空副表
+            // detailTableContainer.innerHTML = '';
+            // trains_data.update_tables();
         }
         else {
             window.alert("目前資料中已經有這個車次號！")
@@ -67,50 +77,61 @@ function add_new_train() {
 
 // 新增車站
 function add_new_station() {
+    if (trains_data.selected_train_no != "-1") {
+        const stations = document.getElementById('stations');
+        const rows = detailTableContainer.getElementsByTagName("tr");
+        const new_row_index = rows.length + 1;
 
-    const stations = document.getElementById('stations');
-    const rows = detailTableContainer.getElementsByTagName("tr");
-    const new_row_index = rows.length + 1;
+        const row = document.createElement('tr');
+        detailTableContainer.appendChild(row);
 
-    const row = document.createElement('tr');
-    detailTableContainer.appendChild(row);
+        // row.innerHTML = item.Train;
+        // row.addEventListener('click', function () {
+        // showDetails(item.Train);
+        // });
 
-    // row.innerHTML = item.Train;
-    // row.addEventListener('click', function () {
-    // showDetails(item.Train);
-    // });
+        add_text_td(row, new_row_index);
 
-    add_text_td(row, new_row_index);
+        // 車站欄位
+        add_td_selection(row, stations_kind, "sel-station-" + new_row_index);
+        // 到站時間
+        add_textbox_td(row, "12:00:00", "input-arrtime-" + new_row_index);
+        // 離站時間
+        add_textbox_td(row, "12:00:00", "input-deptime-" + new_row_index);
 
-    // 車站欄位
-    add_td_selection(row, stations_kind, "sel-station-" + new_row_index);
-    // 到站時間
-    add_textbox_td(row, "12:00:00", "input-arrtime-" + new_row_index);
-    // 離站時間
-    add_textbox_td(row, "12:00:00", "input-deptime-" + new_row_index);
-
-    select_update("sel-station-" + new_row_index, stations.value);
-
+        select_update("sel-station-" + new_row_index, stations.value);
+    }
+    else {
+        window.alert("目前您沒有選擇一個車次！");
+    }
 }
 
 // 暫存時刻表
 function stations_temp_save() {
-    let time_infos = [];
+    if (trains_data.selected_train_no != "-1") {
+        let time_infos = [];
+        const rows = detailTableContainer.getElementsByTagName("tr");
 
-    const rows = detailTableContainer.getElementsByTagName("tr");
+        for (var i = 1; i < rows.length + 1; i++) {
+            time_infos.push({
+                "Station": document.getElementById("sel-station-" + i).value,
+                "Order": i.toString(),
+                "DEPTime": document.getElementById("input-deptime-" + i).value,
+                "ARRTime": document.getElementById("input-arrtime-" + i).value
+            })
+        }
+        // trains_data.selected_train.TimeInfos = time_infos;
 
-    for (var i = 1; i < rows.length + 1; i++) {
-        time_infos.push({
-            "Station": document.getElementById("sel-station-" + i).value,
-            "Order": i.toString(),
-            "DEPTime": document.getElementById("input-deptime-" + i).value,
-            "ARRTime": document.getElementById("input-arrtime-" + i).value
-        })
+        if (time_infos.length > 0) {
+            if (trains_data.update_train_map(trains_data.selected_train_no, time_infos))
+                window.alert("暫存成功！");
+        } else {
+            window.alert("目前您沒有新增任何一個車站！");
+        }
     }
-    trains_data.selected_train.TimeInfos = time_infos;
-    if (trains_data.update_train_map(trains_data.selected_train.Train, trains_data.selected_train))
-        window.alert("暫存成功！");
-    trains_data.update_tables();
+    else {
+        window.alert("目前您沒有選擇一個車次！");
+    }
 }
 
 // 使用者操作與上傳檔案
@@ -137,7 +158,7 @@ function file_upload() {
 function file_save() {
     let json_object = { TrainInfos: [] };
 
-    trains_map.forEach(function (value, key) {
+    trains_data.trains_map.forEach(function (value, key) {
         json_object.TrainInfos.push(value);
     });
 
