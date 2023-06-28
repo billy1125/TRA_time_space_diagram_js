@@ -1,8 +1,16 @@
-let mainTableContainer = document.getElementById('master-table');
-let detailTableContainer = document.getElementById('detail-table');
 let itemsPerPage = 20;              // 每一個分頁要顯示的資料數量
 let currentPage = 1;                // 現在的頁碼
 
+const trains_data = new TrainsClass();
+
+// trains_data.fetchData('tests/20230628.json')
+//     .then((jsonData) => {
+//         trains_data.initial_trains(jsonData);
+//         initial_editor();
+//     })
+//     .catch((error) => {
+//         console.error(error);
+//     });
 initial_editor();
 
 // 編輯器初始化
@@ -15,6 +23,7 @@ function initial_editor() {
     display_master();
 }
 
+// 顯示主表
 function display_master() {
 
     mainTableContainer.innerHTML = '';   // 清空主表内容
@@ -24,50 +33,51 @@ function display_master() {
     let endIndex = startIndex + itemsPerPage;
 
     // 顯示特定頁面的資料
-    var currentPageData = master_train_info.slice(startIndex, endIndex);
-    currentPageData.forEach(function (item) {
-        let row = document.createElement('tr');
-        row.setAttribute('id', item.Train);
-        // row.innerHTML = item.Train;
-        row.addEventListener('click', function () { 
-            
-            select_hightlight(item.Train, row);        
-            selected_train = selected_train = {"Train": item.Train, "LineDir": item.LineDir, "Line": item.Line, "CarClass": item.CarClass};      
-            display_detail(item.Train);
+    if (trains_data.master_train_info.length > 0) {
+        let currentPageData = trains_data.master_train_info.slice(startIndex, endIndex);
+        currentPageData.forEach(function (item) {
+            let row = document.createElement('tr');
+            row.setAttribute('id', item.Train);
+            // row.innerHTML = item.Train;
+            row.addEventListener('click', function () {
+
+                select_hightlight(item.Train, row);
+                trains_data.selected_train = { "Train": item.Train, "LineDir": item.LineDir, "Line": item.Line, "CarClass": item.CarClass };
+                display_detail(item.Train);
+            });
+            mainTableContainer.appendChild(row);
+
+            // 刪除欄位
+            add_button_td(row, "刪除", item.Train);
+
+            // 車次欄位
+            add_textbox_td(row, item.Train, "input-train-" + item.Train);
+            // add_text_td(row, item.Train);
+
+            // 順逆行欄位
+            add_td_selection(row, line_dir_kind, "sel-dir-" + item.Train);
+            select_update("sel-dir-" + item.Train, item.LineDir);
+
+            // 經由路線
+            add_td_selection(row, line_kind, "sel-line-" + item.Train);
+            select_update("sel-line-" + item.Train, item.Line);
+
+            // 車種欄位
+            add_td_selection(row, car_kind, "sel-car-" + item.Train);
+            select_update("sel-car-" + item.Train, item.CarClass);
         });
-        mainTableContainer.appendChild(row);
-
-        // 刪除欄位
-        add_button_td(row, "刪除", item.Train);
-
-        // 車次欄位
-        add_textbox_td(row, item.Train, "input-train-" + item.Train);
-        // add_text_td(row, item.Train);
-
-        // 順逆行欄位
-        add_td_selection(row, line_dir_kind, "sel-dir-" + item.Train);
-        select_update("sel-dir-" + item.Train, item.LineDir);
-
-        // 經由路線
-        add_td_selection(row, line_kind, "sel-line-" + item.Train);
-        select_update("sel-line-" + item.Train, item.Line);
-
-        // 車種欄位
-        add_td_selection(row, car_kind, "sel-car-" + item.Train);
-        select_update("sel-car-" + item.Train, item.CarClass);
-    });
-
+    }
     // 更新頁碼
     updatePagination();
 }
 
-function select_hightlight(id, row){
-    let last_row = document.getElementById(selected_train.Train);
-            
+function select_hightlight(id, row) {
+    let last_row = document.getElementById(trains_data.selected_train.Train);
+
     if (last_row != null)
-        if (last_row.id != id)  
+        if (last_row.id != id)
             last_row.setAttribute('style', '');
-    
+
     row.setAttribute('style', 'background-color:#F00');
 }
 
@@ -86,16 +96,16 @@ function select_update(id, select_value) {
 function display_detail(id) {
 
     detailTableContainer.innerHTML = ''; // 清空副表
-    
+
     var select_train_no = document.getElementById("select-train-no");
     select_train_no.innerHTML = id;
 
     // 以車次號查詢副表內容
-    let details = detail_time_info.find(function (item) {
+    let details = trains_data.detail_time_info.find(function (item) {
         return item.Train === id;
     });
 
-    selected_train.TimeInfos = details;
+    trains_data.selected_train.TimeInfos = details;
 
     details.TimeTable.forEach(function (item) {
         let row = document.createElement('tr');
@@ -112,6 +122,7 @@ function display_detail(id) {
 
         // detailTableContainer.appendChild(detailRow);
     });
+
 }
 
 // 增加文字型態儲存格
@@ -176,21 +187,9 @@ function add_textbox_td(row_element, input_text, dom_id) {
 
 // 更新頁碼
 function updatePagination() {
-    pagination.innerHTML = '';
+    pagination.innerHTML = "";
 
-    var totalPages = Math.ceil(master_train_info.length / itemsPerPage);
-
-    var prevLink = document.createElement('a');
-    prevLink.href = '#';
-    prevLink.textContent = '上一頁';
-    prevLink.addEventListener('click', function (e) {
-        e.preventDefault();
-        if (currentPage > 1) {
-            currentPage--;
-            display_master();
-        }
-    });
-    pagination.appendChild(prevLink);
+    var totalPages = Math.ceil(trains_data.master_train_info.length / itemsPerPage);
 
     var startPage = 1;
     var endPage = totalPages;
@@ -206,6 +205,7 @@ function updatePagination() {
         }
     }
 
+    // 頁碼1
     if (startPage > 1) {
         var firstPageLink = document.createElement('a');
         firstPageLink.href = '#';
@@ -218,13 +218,14 @@ function updatePagination() {
         });
         pagination.appendChild(firstPageLink);
 
-        if (startPage > 2) {
+        if (startPage > 0) {
             var ellipsis = document.createElement('span');
             ellipsis.textContent = '...';
             pagination.appendChild(ellipsis);
         }
     }
 
+    // 中間頁碼
     for (var i = startPage; i <= endPage; i++) {
         var pageLink = document.createElement('a');
         pageLink.href = '#';
@@ -250,6 +251,7 @@ function updatePagination() {
         }
     }
 
+    // 最後頁碼
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
             var ellipsis = document.createElement('span');
@@ -268,18 +270,6 @@ function updatePagination() {
         });
         pagination.appendChild(lastPageLink);
     }
-
-    var nextLink = document.createElement('a');
-    nextLink.href = '#';
-    nextLink.textContent = '下一頁';
-    nextLink.addEventListener('click', function (e) {
-        e.preventDefault();
-        if (currentPage < totalPages) {
-            currentPage++;
-            display_master();
-        }
-    });
-    pagination.appendChild(nextLink);
 }
 
 // 設定新增車次的選單

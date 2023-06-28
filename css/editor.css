@@ -17,22 +17,31 @@ tfoot {
     color: #95ffc5;
 }
 
-#pagination {
+fieldset {
+    background: #f6f8ff;
+    border: 2px solid #4238ca;
+}
+
+.active {
+    border: solid red;
+}
+
+.pages {
     text-align: center;
     background-color: #00f2ff;
 }
 
-#train {
+.train-master {
     width: 60%;
     float: left;
 }
 
-#train_time_table {
+.train-detail {
     width: 40%;
     float: left;
 }
 
-#table-title {
+.table-title {
     font-size: 25px;
     text-align: center;
     color: #ffffff;
