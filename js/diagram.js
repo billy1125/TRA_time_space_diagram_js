@@ -81,19 +81,23 @@ function draw_diagram_background(line_kind) {
 }
 
 // 繪製每一個車次線與車次標註文字
-function draw_train_path(all_trains_data) {
+function draw_train_path(all_trains_data, realtime_trains) {
     for (let train_data of all_trains_data) {
-        for (let [line_kind, train_no, train_kind, line, value] of train_data) {
+        for (let [line_kind, train_no, train_kind, line, line_dir, value] of train_data) {
             if (value.length > 2) {
                 // 某些路線車次線分成兩段，找出那些不連續的資料，將車次資料分成兩段分別繪製
-                const uncontinuous_index = find_uncontinuous_index(value);            
+                const uncontinuous_index = find_uncontinuous_index(value);
                 const section_start_value = value.slice(0, uncontinuous_index);
                 const section_end_value = value.slice(uncontinuous_index, value.length);
+                let realtime_data;
+                if (typeof (realtime_trains) != "undefined") {
+                    realtime_data = realtime_trains.get(train_no);
+                }
 
                 if (section_start_value.length > 1)
-                    set_path(line_kind, train_no, train_kind, section_start_value);
+                    set_path(line_kind, train_no, train_kind, line_dir, section_start_value, realtime_data);
                 if (section_end_value.length > 3)
-                    set_path(line_kind, train_no + "-End", train_kind, section_end_value);
+                    set_path(line_kind, train_no + "-End", train_kind, line_dir, section_end_value, realtime_data);
             }
         }
     }
@@ -117,22 +121,70 @@ function find_uncontinuous_index(value) {
 }
 
 // 車次線資料處理
-function set_path(line_kind, train_no, train_kind, value) {
+function set_path(line_kind, train_no, train_kind, line_dir, value, realtime_data) {
     let path = "M";
     let coordinates = [];
+    let coordinates_all_station = [];
     let style = CarKind[train_kind];
     if (typeof (style) == "undefined") {
         style = "special";
     }
 
     for (const [dsc, id, time, loc, stop, order] of value) {
+        let x = time * 10 - 1200 * DiagramHours[0] + 50;
+        let y = loc + 50;
+        x = Math.round((x + Number.EPSILON) * 100) / 100;
+        y = Math.round((y + Number.EPSILON) * 100) / 100;
         if (stop != -1 || LinesStationsForBackground[line_kind][id]['TERMINAL'] == 'Y') {
-            let x = time * 10 - 1200 * DiagramHours[0] + 50;
-            let y = loc + 50;
-            x = Math.round((x + Number.EPSILON) * 100) / 100;
-            y = Math.round((y + Number.EPSILON) * 100) / 100;
             path += x.toString() + ',' + y.toString() + ' ';
             coordinates.push([x, y]);
+        }
+        if (stop != -1 || LinesStationsForBackground[line_kind][id]['TERMINAL'] == 'Y') {
+            coordinates_all_station.push([x, y]);
+        } else
+            coordinates_all_station.push([NaN, y]);
+    }
+
+    let interpolateA = [];
+    let interpolateB = [];
+    coordinates_all_station.forEach(element => {
+        interpolateA.push(element[0]);
+        interpolateB.push(element[1]);
+    });
+    const interpolatedArray = interpolateArray(interpolateB, interpolateA);
+    for (let i = 0; i < coordinates_all_station.length; i++) {
+        coordinates_all_station[i][0] = interpolatedArray[i];
+    }
+
+    if (typeof (realtime_data) != "undefined") {
+        let end_index = -1;
+        let start_index = -1;
+        Object.entries(value).forEach(([key, value1]) => {
+            if (value1[1] == realtime_data.StationID) {
+                if (line_dir == 2){
+                    end_index = parseFloat(key) + 1;
+                    start_index = parseFloat(key);
+                }else if (line_dir == 1){
+                    start_index = parseFloat(key) - 1;
+                    end_index = parseFloat(key);
+                }
+                
+            }
+        })
+
+        if (typeof (coordinates_all_station[start_index]) != "undefined" && typeof (coordinates_all_station[end_index]) != "undefined") {
+            // 定義兩個平面點的座標
+            let point1 = { x: coordinates_all_station[start_index][0], y: coordinates_all_station[start_index][1] };
+            let point2 = { x: coordinates_all_station[end_index][0], y: coordinates_all_station[end_index][1] };
+
+            // 計算中點的座標
+            let midpoint = {
+                x: (point1.x + point2.x) / 2,
+                y: (point1.y + point2.y) / 2
+            };
+
+
+            let rect = diagram_objects[line_kind].circle(20).fill('#f00').move(midpoint.x - 10, midpoint.y - 10 );
         }
     }
 
@@ -242,4 +294,37 @@ function calculate_distance(start, end) {
     const deltaY = end[1] - start[1];
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
     return distance;
+}
+
+function interpolateArray(A, B) {
+    const result = [];
+
+    for (let i = 0; i < A.length; i++) {
+        if (!isNaN(B[i])) {
+            result[i] = B[i];
+        } else {
+            const referenceValue = A[i];
+            let prevIndex = i - 1;
+            let nextIndex = i + 1;
+
+            while (isNaN(B[prevIndex]) && prevIndex >= 0) {
+                prevIndex--;
+            }
+
+            while (isNaN(B[nextIndex]) && nextIndex < A.length) {
+                nextIndex++;
+            }
+
+            const prevValue = B[prevIndex];
+            const nextValue = B[nextIndex];
+            const prevDiff = referenceValue - A[prevIndex];
+            const nextDiff = A[nextIndex] - referenceValue;
+            const totalDiff = prevDiff + nextDiff;
+            
+            const value = (prevValue * nextDiff + nextValue * prevDiff) / totalDiff;
+            result[i] = Math.round((value + Number.EPSILON) * 100) / 100;
+        }
+    }
+
+    return result;
 }

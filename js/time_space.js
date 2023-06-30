@@ -20,7 +20,7 @@ function calculate_space_time(train, line_kind) {
     const operation_lines = time_space_to_operation_lines(estimate_time_space, line_kind);     // 將車次的通過車站、到離站時間轉入各營運路線
 
     Object.entries(operation_lines).forEach(([key, value]) => {
-        _trains_data.push([key, train_id, car_class, line, value]);
+        _trains_data.push([key, train_id, car_class, line, line_dir, value]);
     })
 
     return _trains_data;
