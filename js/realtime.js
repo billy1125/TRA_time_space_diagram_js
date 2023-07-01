@@ -1,7 +1,3 @@
-const url = new URL(location.href);
-const line_kind = url.searchParams.get('lineKind');
-const date = getFormattedDate();
-
 function readJSONFile(file, callback) {
     fetch(file)
         .then(response => {
@@ -12,11 +8,14 @@ function readJSONFile(file, callback) {
         .catch(error => callback(error, null));
 }
 
-readJSONFile("data/realtime_diagram/" + date + ".json", function (error, data) {
+let date = getFormattedDate(); 
+
+readJSONFile("tests/" + date + ".json", function (error, data) {
     if (error) {
         console.log("Error reading JSON file:", error);
     } else {
         execute(data);
+        // 在這裡處理你的 JSON 資料
     }
 });
 
@@ -31,6 +30,7 @@ function getFormattedDate() {
 
 // 使用者操作與上傳檔案
 function execute(jsonData) {
+    // btn_execute.disabled = true;
 
     // 清除已有的運行圖    
     const svg = document.querySelectorAll("svg");
@@ -38,7 +38,7 @@ function execute(jsonData) {
         svg.remove();
     });
 
-    json_to_trains_data(jsonData, '', line_kind);  // 將JSON檔案轉換成時間空間資料
+    json_to_trains_data(jsonData, '', 'LINE_WN');  // 將JSON檔案轉換成時間空間資料
 }
 
 // JSON檔處理，將JSON檔案轉換成時間空間資料
@@ -57,17 +57,18 @@ function json_to_trains_data(json_data, train_no_input, line_kind) {
         }
     }
 
-    readJSONFile("data/realtime_trains.json", function (error, data) {
+    readJSONFile("tests/trains.json", function (error, data) {
         if (error) {
             console.log("Error reading JSON file:", error);
         } else {
-            // console.log(data.TrainLiveBoards);
+            console.log(data.TrainLiveBoards);
             let realtime_trains = new Map();
             for (const iterator of data.TrainLiveBoards) {
                 realtime_trains.set(iterator.TrainNo, iterator);
             }
 
             draw(line_kind, all_trains_data, realtime_trains);
+            // 在這裡處理你的 JSON 資料
         }
     });
 
@@ -78,15 +79,7 @@ function draw(line_kind, all_trains_data, realtime_trains) {
     draw_diagram_background(line_kind);                    // 繪製運行圖底圖(基礎時間與車站線)
     draw_train_path(all_trains_data, realtime_trains);     // 繪製每一個車次線
 
-    let now = new Date();
-    let hour_position = parseFloat(now.getHours()) - 4;
-    if (hour_position > 0){
-        hour_position *= 1200;
-        scrollToPosition(hour_position, 0);
-    }
+    // btn_execute.disabled = false;
+    // btn_download.disabled = false;
 }
 
-// 滾動到指定位置
-function scrollToPosition(xPostion, yPosition) {
-    window.scrollTo(xPostion, yPosition);
-}

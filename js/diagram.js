@@ -95,14 +95,9 @@ function draw_train_path(all_trains_data, realtime_trains) {
                 }
 
                 if (section_start_value.length > 1)
-                    set_path(line_kind, train_no, train_kind, section_start_value);
-                if (typeof (realtime_data) != "undefined")
-                    mark_realtime_train_position(section_start_value, line_dir, train_kind, realtime_data);
-
+                    set_path(line_kind, train_no, train_kind, line_dir, section_start_value, realtime_data);
                 if (section_end_value.length > 3)
-                    set_path(line_kind, train_no + "-End", train_kind, section_end_value);
-                if (typeof (realtime_data) != "undefined")
-                    mark_realtime_train_position(section_end_value, line_dir, train_kind, realtime_data);
+                    set_path(line_kind, train_no + "-End", train_kind, line_dir, section_end_value, realtime_data);
             }
         }
     }
@@ -126,9 +121,10 @@ function find_uncontinuous_index(value) {
 }
 
 // 車次線資料處理
-function set_path(line_kind, train_no, train_kind, value) {
+function set_path(line_kind, train_no, train_kind, line_dir, value, realtime_data) {
     let path = "M";
     let coordinates = [];
+    let coordinates_all_station = [];
     let style = CarKind[train_kind];
     if (typeof (style) == "undefined") {
         style = "special";
@@ -142,6 +138,53 @@ function set_path(line_kind, train_no, train_kind, value) {
         if (stop != -1 || LinesStationsForBackground[line_kind][id]['TERMINAL'] == 'Y') {
             path += x.toString() + ',' + y.toString() + ' ';
             coordinates.push([x, y]);
+        }
+        if (stop != -1 || LinesStationsForBackground[line_kind][id]['TERMINAL'] == 'Y') {
+            coordinates_all_station.push([x, y]);
+        } else
+            coordinates_all_station.push([NaN, y]);
+    }
+
+    let interpolateA = [];
+    let interpolateB = [];
+    coordinates_all_station.forEach(element => {
+        interpolateA.push(element[0]);
+        interpolateB.push(element[1]);
+    });
+    const interpolatedArray = interpolateArray(interpolateB, interpolateA);
+    for (let i = 0; i < coordinates_all_station.length; i++) {
+        coordinates_all_station[i][0] = interpolatedArray[i];
+    }
+
+    if (typeof (realtime_data) != "undefined") {
+        let end_index = -1;
+        let start_index = -1;
+        Object.entries(value).forEach(([key, value1]) => {
+            if (value1[1] == realtime_data.StationID) {
+                if (line_dir == 2){
+                    end_index = parseFloat(key) + 1;
+                    start_index = parseFloat(key);
+                }else if (line_dir == 1){
+                    start_index = parseFloat(key) - 1;
+                    end_index = parseFloat(key);
+                }
+                
+            }
+        })
+
+        if (typeof (coordinates_all_station[start_index]) != "undefined" && typeof (coordinates_all_station[end_index]) != "undefined") {
+            // 定義兩個平面點的座標
+            let point1 = { x: coordinates_all_station[start_index][0], y: coordinates_all_station[start_index][1] };
+            let point2 = { x: coordinates_all_station[end_index][0], y: coordinates_all_station[end_index][1] };
+
+            // 計算中點的座標
+            let midpoint = {
+                x: (point1.x + point2.x) / 2,
+                y: (point1.y + point2.y) / 2
+            };
+
+
+            let rect = diagram_objects[line_kind].circle(20).fill('#f00').move(midpoint.x - 10, midpoint.y - 10 );
         }
     }
 
@@ -211,70 +254,6 @@ function calculate_text_position(coordinates, color) {
     return text_position;
 }
 
-// 標註列車即時位置
-function mark_realtime_train_position(value, line_dir, train_kind, realtime_data) {
-    let coordinates_all_station = [];
-    let style = CarKind[train_kind] + "_mark";
-    if (typeof (style) == "undefined") {
-        style = "special_mark";
-    }
-
-    // 將所有車站的位置找出，如果是不會停靠的車站，X軸的點設定NaN缺值
-    for (const [dsc, id, time, loc, stop, order] of value) {
-        let x = time * 10 - 1200 * DiagramHours[0] + 50;
-        let y = loc + 50;
-        x = Math.round((x + Number.EPSILON) * 100) / 100;
-        y = Math.round((y + Number.EPSILON) * 100) / 100;
-
-        if (stop != -1 || LinesStationsForBackground[line_kind][id]['TERMINAL'] == 'Y') {
-            coordinates_all_station.push([x, y]);
-        } else
-            coordinates_all_station.push([NaN, y]);
-    }
-
-    // 依據Y軸的位置來插補X軸的NaN缺值
-    let interpolateA = [];
-    let interpolateB = [];
-    coordinates_all_station.forEach(element => {
-        interpolateA.push(element[0]);
-        interpolateB.push(element[1]);
-    });
-    const interpolatedArray = interpolateArray(interpolateB, interpolateA);
-    for (let i = 0; i < coordinates_all_station.length; i++) {
-        coordinates_all_station[i][0] = interpolatedArray[i];
-    }
-
-    // 台鐵的即時列車位置是提供「已離開的車站」資料，因此需要依照順逆行，來設定在哪兩個車站之間
-    let end_index = -1;
-    let start_index = -1;
-    Object.entries(value).forEach(([key, value1]) => {
-        if (value1[1] == realtime_data.StationID) {
-            if (line_dir == 2) {
-                end_index = parseFloat(key) + 1;
-                start_index = parseFloat(key);
-            } else if (line_dir == 1) {
-                start_index = parseFloat(key) - 1;
-                end_index = parseFloat(key);
-            }
-
-        }
-    })
-
-    // 計算兩個車站的中點位置
-    if (typeof (coordinates_all_station[start_index]) != "undefined" && typeof (coordinates_all_station[end_index]) != "undefined") {
-        let point1 = { x: coordinates_all_station[start_index][0], y: coordinates_all_station[start_index][1] };
-        let point2 = { x: coordinates_all_station[end_index][0], y: coordinates_all_station[end_index][1] };
-
-        let midpoint = {
-            x: (point1.x + point2.x) / 2,
-            y: (point1.y + point2.y) / 2
-        };
-
-        let mark = diagram_objects[line_kind].circle(10).move(midpoint.x - 5, midpoint.y - 5);
-        mark.attr({ class: style });
-    }
-}
-
 // 增加線條函式，用於直線
 function add_line(draw_object, x1, x2, y1, y2, style) {
     const line = draw_object.line(x1, x2, y1, y2);
@@ -341,7 +320,7 @@ function interpolateArray(A, B) {
             const prevDiff = referenceValue - A[prevIndex];
             const nextDiff = A[nextIndex] - referenceValue;
             const totalDiff = prevDiff + nextDiff;
-
+            
             const value = (prevValue * nextDiff + nextValue * prevDiff) / totalDiff;
             result[i] = Math.round((value + Number.EPSILON) * 100) / 100;
         }

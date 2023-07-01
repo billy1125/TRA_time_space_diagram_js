@@ -4,7 +4,7 @@ line {
 }
 
 svg {
-    font-family: Tahoma, Verdana, sans-serif;
+    font-family: Tahoma;
     font-size: 14px;
 }
 
@@ -37,7 +37,7 @@ svg {
     stroke: #0105e0;
 }
 
-.station {
+.station {   
     fill: #000000;
 }
 
@@ -105,52 +105,4 @@ path {
 
 .special {
     stroke: #ff1493;
-}
-
-.taroko_mark {
-    fill: #20b2aa;
-}
-
-.puyuma_mark {
-    fill: #ff0000;
-}
-
-.tze_chiang_mark {
-    fill: #ffa500;
-}
-
-.tze_chiang_diesel_mark {
-    stroke: #ffd700;
-}
-
-.emu1200_mark {
-    fill: #ff008c;
-}
-
-.emu300_mark {
-    fill: #ff4444;
-}
-
-.emu3000_mark {
-    fill: #000000;
-}
-
-.chu_kuang_mark {
-    fill: #FAAB82;
-}
-
-.local_mark {
-    fill: #0000ff;
-}
-
-.fu_hsing_mark {
-    fill: #00bfff;
-}
-
-.ordinary_mark {
-    fill: #ff1493;
-}
-
-.special_mark {
-    fill: #ff1493;
 }
