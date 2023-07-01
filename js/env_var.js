@@ -27,11 +27,11 @@ function readJSONFile(file) {
 }
 
 // 四个 JSON 文件的路径
-let file1 = "data/Route.json";
-let file2 = "data/SVG_X_Axis.json";
-let file3 = "data/SVG_Y_Axis.json";
-let file4 = "data/OperationLines.json";
-let file5 = "data/CarKind.json";
+let file1 = "data/diagram_js/Route.json";
+let file2 = "data/diagram_js/SVG_X_Axis.json";
+let file3 = "data/diagram_js/SVG_Y_Axis.json";
+let file4 = "data/diagram_js/OperationLines.json";
+let file5 = "data/diagram_js/CarKind.json";
 
 // 读取四个 JSON 文件，并将它们存储在一个数组中
 Promise.all([
