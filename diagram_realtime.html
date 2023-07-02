@@ -7,11 +7,42 @@
     <title>即時運行圖</title>
     <link rel="stylesheet" href="css/style.css">
 
+    <style>
+        .popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            display: -ms-flexbox;
+            display: flex;
+            -ms-flex-align: center;
+            align-items: center;
+            text-align: center;
+            vertical-align: middle;
+            background-color: #00a97f;
+            opacity: 0.5;
+        }
+
+        .msg {
+            width: 100%;
+            max-width: 500px;
+            padding: 15px;
+            margin: auto;
+            z-index: 2;
+            background-color: #ff2c2c;
+            color: white;
+        }
+    </style>
 </head>
 
-
 <body>
-
+    <div id="popup" class="popup">
+        <div class="msg">
+            <h1>讀取中，請稍後...</h1>
+        </div>
+    </div>
 </body>
 
 <script src="js/svg.js/svg.min.js" defer></script>

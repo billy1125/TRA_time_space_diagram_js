@@ -213,12 +213,16 @@ function calculate_text_position(coordinates, color) {
 
 // 標註列車即時位置
 function mark_realtime_train_position(value, line_dir, train_kind, realtime_data) {
+    let now_time_x_axis = null;
     let coordinates_all_station = [];
     let style = CarKind[train_kind] + "_mark";
     if (typeof (style) == "undefined") {
         style = "special_mark";
     }
 
+    if (realtime_data.StationID > 0) 
+        now_time_x_axis = get_now_time_x_axis(realtime_data.DelayTime);
+    
     // 將所有車站的位置找出，如果是不會停靠的車站，X軸的點設定NaN缺值
     for (const [dsc, id, time, loc, stop, order] of value) {
         let x = time * 10 - 1200 * DiagramHours[0] + 50;
@@ -226,52 +230,29 @@ function mark_realtime_train_position(value, line_dir, train_kind, realtime_data
         x = Math.round((x + Number.EPSILON) * 100) / 100;
         y = Math.round((y + Number.EPSILON) * 100) / 100;
 
-        if (stop != -1 || LinesStationsForBackground[line_kind][id]['TERMINAL'] == 'Y') {
+        if (stop != -1 || LinesStationsForBackground[line_kind][id]['TERMINAL'] == 'Y')
             coordinates_all_station.push([x, y]);
-        } else
-            coordinates_all_station.push([NaN, y]);
     }
 
-    // 依據Y軸的位置來插補X軸的NaN缺值
-    let interpolateA = [];
-    let interpolateB = [];
-    coordinates_all_station.forEach(element => {
-        interpolateA.push(element[0]);
-        interpolateB.push(element[1]);
-    });
-    const interpolatedArray = interpolateArray(interpolateB, interpolateA);
-    for (let i = 0; i < coordinates_all_station.length; i++) {
-        coordinates_all_station[i][0] = interpolatedArray[i];
-    }
-
-    // 台鐵的即時列車位置是提供「已離開的車站」資料，因此需要依照順逆行，來設定在哪兩個車站之間
-    let end_index = -1;
     let start_index = -1;
-    Object.entries(value).forEach(([key, value1]) => {
-        if (value1[1] == realtime_data.StationID) {
-            if (line_dir == 2) {
-                end_index = parseFloat(key) + 1;
-                start_index = parseFloat(key);
-            } else if (line_dir == 1) {
-                start_index = parseFloat(key) - 1;
-                end_index = parseFloat(key);
+    let end_index = -1;
+    for (let i = 1; i < coordinates_all_station.length; i++) {
+        if (coordinates_all_station[i][0] >= now_time_x_axis && coordinates_all_station[0][0] <= now_time_x_axis) {
+            end_index = i;
+            start_index = end_index - 1;
+
+            axis_x = [coordinates_all_station[start_index][0], now_time_x_axis, coordinates_all_station[end_index][0]];
+            axis_y = [coordinates_all_station[start_index][1], NaN, coordinates_all_station[end_index][1]];
+
+            if (axis_x[0] < axis_x[1] && axis_x[1] < axis_x[2]) {
+                const interpolatedArray = interpolateArray(axis_x, axis_y);
+                // console.log(interpolatedArray);
+
+                let mark = diagram_objects[line_kind].circle(10).move(axis_x[1] - 5, interpolatedArray[1] - 5);
+                mark.attr({ class: style });
             }
-
+            break;
         }
-    })
-
-    // 計算兩個車站的中點位置
-    if (typeof (coordinates_all_station[start_index]) != "undefined" && typeof (coordinates_all_station[end_index]) != "undefined") {
-        let point1 = { x: coordinates_all_station[start_index][0], y: coordinates_all_station[start_index][1] };
-        let point2 = { x: coordinates_all_station[end_index][0], y: coordinates_all_station[end_index][1] };
-
-        let midpoint = {
-            x: (point1.x + point2.x) / 2,
-            y: (point1.y + point2.y) / 2
-        };
-
-        let mark = diagram_objects[line_kind].circle(10).move(midpoint.x - 5, midpoint.y - 5);
-        mark.attr({ class: style });
     }
 }
 
@@ -348,4 +329,29 @@ function interpolateArray(A, B) {
     }
 
     return result;
+}
+
+function get_now_time_x_axis(minus_time) {
+
+    // 取得現在時間
+    let currentTime = new Date();
+    // 減去10分鐘
+    currentTime.setMinutes(currentTime.getMinutes() - minus_time);
+
+    // 取得減去10分鐘後的台北時間
+    var options = { timeZone: 'Asia/Taipei', hour12: false };
+    var newTime = currentTime.toLocaleString('en-US', options);
+
+
+    let hours = currentTime.getHours().toString().padStart(2, '0');
+    let minutes = currentTime.getMinutes().toString().padStart(2, '0');
+    let seconds = currentTime.getSeconds().toString().padStart(2, '0');
+
+    // 將秒調整為最接近的 00 或 30
+    seconds = Math.round(seconds / 30) * 30;
+    seconds = seconds === 60 ? '00' : seconds.toString().padStart(2, '0');
+
+    const x = SVG_X_Axis[`${hours}:${minutes}:${seconds}`].ax1 * 10 - 1200 * DiagramHours[0] + 50;
+    // const x = SVG_X_Axis["10:19:00"].ax1 * 10 - 1200 * DiagramHours[0] + 50;
+    return x;
 }

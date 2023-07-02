@@ -78,9 +78,15 @@ function draw(line_kind, all_trains_data, realtime_trains) {
     draw_diagram_background(line_kind);                    // 繪製運行圖底圖(基礎時間與車站線)
     draw_train_path(all_trains_data, realtime_trains);     // 繪製每一個車次線
 
+    // 移除讀取中的文字
+    var popup = document.getElementById("popup");
+    const parentObj = popup.parentNode;
+    parentObj.removeChild(popup);
+
+    // 依照現在的時間，將視窗滾動到整點時間，方便使用者閱讀
     let now = new Date();
     let hour_position = parseFloat(now.getHours()) - 4;
-    if (hour_position > 0){
+    if (hour_position > 0) {
         hour_position *= 1200;
         scrollToPosition(hour_position, 0);
     }
