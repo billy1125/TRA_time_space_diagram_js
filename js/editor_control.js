@@ -1,4 +1,4 @@
-// 建立新時刻表
+// 建立新時刻表按鍵
 function open_new_timetable() {
     const results = window.confirm('您確定要清除所有資料嗎？');
     if (results == true) {
@@ -10,7 +10,7 @@ function open_new_timetable() {
     }
 }
 
-// 新增車次
+// 新增車次按鍵
 function add_new_train() {
     const train_no = document.getElementById('train_no');
 
@@ -30,41 +30,7 @@ function add_new_train() {
         // const train_id = train_no.value;
         if (results) {
             display_master();
-            // const row = document.createElement('tr');
-            // row.setAttribute('id', train_no.value);
-            // row.addEventListener('click', function () {
-            //     const id = this.getAttribute("id"); // 取得點擊行的ID
-            //     console.log(id);
-            //     select_hightlight(train_id, row);
-            //     // trains_data.selected_train = { "Train": item.Train, "LineDir": item.LineDir, "Line": item.Line, "CarClass": item.CarClass };
-            //     display_detail(train_id);
-            // });
-            // mainTableContainer.appendChild(row);
-            // // 改列的顏色
-            // select_hightlight(train_no, row);
 
-            // // 刪除欄位
-            // add_button_td(row, "刪除", train_no.value);
-
-            // // 車次欄位
-            // add_textbox_td(row, train_no.value, "input-train-" + train_no.value);
-
-            // // 順逆行欄位
-            // add_td_selection(row, line_dir_kind, "sel-dir-" + train_no.value);
-
-            // // 經由路線
-            // add_td_selection(row, line_kind, "sel-line-" + train_no.value);
-
-            // // 車種欄位
-            // add_td_selection(row, car_kind, "sel-car-" + train_no.value);
-
-            // select_update("sel-line-" + train_no.value, line.value);
-            // select_update("sel-dir-" + train_no.value, line_dir.value);
-            // select_update("sel-car-" + train_no.value, car_class.value);
-
-            // // 清空副表
-            // detailTableContainer.innerHTML = '';
-            // trains_data.update_tables();
         }
         else {
             window.alert("目前資料中已經有這個車次號！")
@@ -75,7 +41,7 @@ function add_new_train() {
     }
 }
 
-// 新增車站
+// 新增車站按鍵
 function add_new_station() {
     if (trains_data.selected_train_no != "-1") {
         const stations = document.getElementById('stations');
@@ -106,7 +72,7 @@ function add_new_station() {
     }
 }
 
-// 暫存時刻表
+// 暫存時刻表按鍵
 function stations_temp_save() {
     if (trains_data.selected_train_no != "-1") {
         let time_infos = [];
@@ -134,7 +100,7 @@ function stations_temp_save() {
     }
 }
 
-// 使用者操作與上傳檔案
+// 使用者操作與上傳檔案按鍵
 function file_upload() {
     // 擷取使用者選擇的檔案、車次號與路線
     const file_input = document.getElementById("file_input");
@@ -154,7 +120,7 @@ function file_upload() {
     }
 }
 
-// 檔案存檔
+// 檔案存檔按鍵
 function file_save() {
     let json_object = { TrainInfos: [] };
 
@@ -163,21 +129,27 @@ function file_save() {
     });
 
     const json = JSON.stringify(json_object);
-    download(json, 'export.json', 'text/plain');
+    trains_data.download(json, 'export.json', 'text/plain');
 
     trains_data.update_tables();
 }
 
-// 下載檔案的函式
-function download(content, fileName, contentType) {
-    var a = document.createElement("a");
-    var file = new Blob([content], { type: contentType });
-    a.href = URL.createObjectURL(file);
-    a.download = fileName;
-    a.click();
+// 直接轉運行圖按鍵
+function open_in_diagram() {  
+    var obj = [];
+    trains_data.trains_map.forEach(function (value, key) {
+        obj.push(value);
+    });
+
+    let data = {};
+    data["TrainInfos"] = obj;
+   
+    var jsonText = JSON.stringify(data);
+    window.localStorage.setItem("diagram_data", jsonText);
+    window.open('diagram_export.html', '_blank');
 }
 
-// 上一頁
+// 上一頁連結
 function move_last_page() {
     if (currentPage > 1) {
         currentPage--;
@@ -185,7 +157,7 @@ function move_last_page() {
     }
 }
 
-// 下一頁
+// 下一頁連結
 function move_next_page() {
     var totalPages = Math.ceil(trains_data.master_train_info.length / itemsPerPage);
 

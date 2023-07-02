@@ -1,16 +1,4 @@
-// 副表数据
-// var detailTable = [
-//     { id: 1, details: 'Details for John' },
-//     { id: 2, details: 'Details for Alice' },
-//     { id: 3, details: 'Details for Bob' }
-// ];
-
-// 主表数据
-// var mainTable = [
-//     { id: 1, name: 'John' },
-//     { id: 2, name: 'Alice' },
-//     { id: 3, name: 'Bob' }
-// ];
+const itemsPerPage = 20;              // 每一個分頁要顯示的資料數量
 
 const line_dir_kind = [
     { id: 1, dsc: "順行" },

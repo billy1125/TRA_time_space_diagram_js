@@ -326,12 +326,3 @@ function linearInterpolation(array) {
 
     return array;
 }
-
-// export function FindUncontinuousStation(line) {
-//     let _index_temp = [];
-//     Object.entries(_operation_lines[line]).forEach(([key, value]) => {
-//         if (value[1] == '3360' || value[1] == '1250')
-//             _index_temp.push(key);
-//     })
-//     return _index_temp;
-// }

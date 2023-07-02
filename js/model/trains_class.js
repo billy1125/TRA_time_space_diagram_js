@@ -108,6 +108,15 @@ class TrainsClass {
         } else
             return false;
     }
+
+    // 下載檔案的函式
+    download(content, fileName, contentType) {
+        var a = document.createElement("a");
+        var file = new Blob([content], { type: contentType });
+        a.href = URL.createObjectURL(file);
+        a.download = fileName;
+        a.click();
+    }
 }
 
 

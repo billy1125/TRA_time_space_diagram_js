@@ -1,17 +1,57 @@
-let itemsPerPage = 20;              // 每一個分頁要顯示的資料數量
 let currentPage = 1;                // 現在的頁碼
+let trains_data = null;
 
-const trains_data = new TrainsClass();
+// 定義基本檔案相依性
+const dependencies = [
+    'js/configure/config.js',
+    'js/configure/env_var.js',
+    'js/configure/editor_var.js',
+    'js/utilties/util.js',
+    'js/model/trains_class.js',
+    'js/editor_control.js'
+];
 
-trains_data.fetchData('tests/20230628.json')
-    .then((jsonData) => {
-        trains_data.initial_trains(jsonData);
-        initial_editor();
-    })
-    .catch((error) => {
-        console.error(error);
+// 開始載入基本檔案
+loadDependencies();
+
+// 異步載入函式
+async function loadDependencies() {
+    // 迭代相依性並載入它們
+    for (const dependency of dependencies) {
+        await loadScript(dependency);
+    }
+    // 所有基本檔案載入完成後，執行其他函式
+    initial_data();
+    // initial_editor();
+}
+
+// 載入 JavaScript 檔案的函式
+function loadScript(file) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = file;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
     });
-// initial_editor();
+}
+
+// 其他函式
+function initial_data() {
+    // 讀取所有資料檔
+    Promise.all([
+        readJSONFile('data/realtime_diagram/20230702.json')
+    ])
+        .then(function (results) {
+            trains_data = new TrainsClass();
+            trains_data.initial_trains(results[0]);
+            // 在基本檔案載入完成後執行的函式
+            initial_editor();
+        })
+        .catch(function (error) {
+            console.error(error);
+        });
+}
 
 // 編輯器初始化
 function initial_editor() {
@@ -46,7 +86,7 @@ function display_master() {
                 select_hightlight(train_no, row);
 
                 display_detail(train_no);
-                
+
             });
             mainTableContainer.appendChild(row);
 
@@ -72,48 +112,6 @@ function display_master() {
     }
     // 更新頁碼
     updatePagination();
-}
-
-function check_is_update(train_no) {
-    const train_data = trains_data.trains_map.get(train_no);
-    const data_in_class = {
-        "LineDir": train_data.LineDir,
-        "Line": train_data.Line,
-        "CarClass": train_data.CarClass
-    };
-
-    const data_on_ui = {
-        "LineDir": document.getElementById("sel-dir-" + train_no).value,
-        "Line": document.getElementById("sel-line-" + train_no).value,
-        "CarClass": document.getElementById("sel-car-" + train_no).value
-    };
-    if (deepCompare(data_in_class, data_on_ui) == false) {
-        trains_data.update_train(train_no, data_on_ui.LineDir, data_on_ui.Line, data_on_ui.CarClass);
-    }
-}
-
-function select_hightlight(id, row) {
-    let last_row = document.getElementById(trains_data.last_selected_train_no);
-
-    if (last_row != null)
-        if (last_row.id != id){
-            check_is_update(last_row.id);
-            last_row.setAttribute('style', '');
-        }
-
-    row.setAttribute('style', 'background-color:#F00');
-    trains_data.last_selected_train_no = id;
-}
-
-function select_update(id, select_value) {
-    var selection = document.getElementById(id);
-
-    for (var i = 0; i < selection.options.length; i++) {
-        if (selection.options[i].value === select_value) {
-            selection.options[i].selected = true;
-            break;
-        }
-    }
 }
 
 // 顯示副表
@@ -147,66 +145,6 @@ function display_detail(id) {
         // detailTableContainer.appendChild(detailRow);
     });
 
-}
-
-// 增加文字型態儲存格
-function add_text_td(row_element, inner_text) {
-    let td = document.createElement('td');
-    td.innerHTML = inner_text;
-    row_element.appendChild(td);
-}
-
-// 增加按鍵型態儲存格(刪除)
-function add_button_td(row_element, inner_text, dom_id) {
-    let td = document.createElement('td');
-    row_element.appendChild(td);
-
-    let button = document.createElement("button");
-    button.innerHTML = inner_text;
-    if (dom_id !== '')
-        button.setAttribute('id', "sel-del-" + dom_id);
-    td.appendChild(button);
-
-    button.addEventListener('click', function () {
-        let check = window.confirm(`您確定要刪除第 ${dom_id} 車次？`);
-        if (check == true) {
-            trains_data.delete_train_map(dom_id);
-
-            display_master();
-        }
-    });
-}
-
-// 增加選項儲存格
-function add_td_selection(row_element, selection_kind, dom_id) {
-    let td = document.createElement('td');
-    row_element.appendChild(td);
-
-    let select = document.createElement("select");
-    if (dom_id !== '')
-        select.setAttribute('id', dom_id);
-
-    selection_kind.forEach(function (optionData) {
-        var option = document.createElement("option");
-        option.value = optionData.id;
-        option.text = optionData.id + " - " + optionData.dsc;
-        select.appendChild(option);
-    });
-    td.appendChild(select);
-}
-
-// 增加編輯文字框儲存格
-function add_textbox_td(row_element, input_text, dom_id) {
-    let td = document.createElement('td');
-    row_element.appendChild(td);
-
-    let input = document.createElement("input");
-    if (dom_id !== '')
-        input.setAttribute('id', dom_id);
-    input.setAttribute('type', 'text');
-    input.setAttribute('value', input_text);
-
-    td.appendChild(input);
 }
 
 // 更新頁碼
@@ -296,6 +234,110 @@ function updatePagination() {
     }
 }
 
+function check_is_update(train_no) {
+    const train_data = trains_data.trains_map.get(train_no);
+    const data_in_class = {
+        "LineDir": train_data.LineDir,
+        "Line": train_data.Line,
+        "CarClass": train_data.CarClass
+    };
+
+    const data_on_ui = {
+        "LineDir": document.getElementById("sel-dir-" + train_no).value,
+        "Line": document.getElementById("sel-line-" + train_no).value,
+        "CarClass": document.getElementById("sel-car-" + train_no).value
+    };
+    if (deepCompare(data_in_class, data_on_ui) == false) {
+        trains_data.update_train(train_no, data_on_ui.LineDir, data_on_ui.Line, data_on_ui.CarClass);
+    }
+}
+
+// 將選擇的車次標為紅色
+function select_hightlight(id, row) {
+    let last_row = document.getElementById(trains_data.last_selected_train_no);
+
+    if (last_row != null)
+        if (last_row.id != id) {
+            check_is_update(last_row.id);
+            last_row.setAttribute('style', '');
+        }
+
+    row.setAttribute('style', 'background-color:#F00');
+    trains_data.last_selected_train_no = id;
+}
+
+// 更新選項
+function select_update(id, select_value) {
+    var selection = document.getElementById(id);
+
+    for (var i = 0; i < selection.options.length; i++) {
+        if (selection.options[i].value === select_value) {
+            selection.options[i].selected = true;
+            break;
+        }
+    }
+}
+
+// 增加文字型態儲存格
+function add_text_td(row_element, inner_text) {
+    let td = document.createElement('td');
+    td.innerHTML = inner_text;
+    row_element.appendChild(td);
+}
+
+// 增加按鍵型態儲存格(刪除)
+function add_button_td(row_element, inner_text, dom_id) {
+    let td = document.createElement('td');
+    row_element.appendChild(td);
+
+    let button = document.createElement("button");
+    button.innerHTML = inner_text;
+    if (dom_id !== '')
+        button.setAttribute('id', "sel-del-" + dom_id);
+    td.appendChild(button);
+
+    button.addEventListener('click', function () {
+        let check = window.confirm(`您確定要刪除第 ${dom_id} 車次？`);
+        if (check == true) {
+            trains_data.delete_train_map(dom_id);
+
+            display_master();
+        }
+    });
+}
+
+// 增加選項儲存格
+function add_td_selection(row_element, selection_kind, dom_id) {
+    let td = document.createElement('td');
+    row_element.appendChild(td);
+
+    let select = document.createElement("select");
+    if (dom_id !== '')
+        select.setAttribute('id', dom_id);
+
+    selection_kind.forEach(function (optionData) {
+        var option = document.createElement("option");
+        option.value = optionData.id;
+        option.text = optionData.id + " - " + optionData.dsc;
+        select.appendChild(option);
+    });
+    td.appendChild(select);
+}
+
+// 增加編輯文字框儲存格
+function add_textbox_td(row_element, input_text, dom_id) {
+    let td = document.createElement('td');
+    row_element.appendChild(td);
+
+    let input = document.createElement("input");
+    if (dom_id !== '')
+        input.setAttribute('id', dom_id);
+    input.setAttribute('type', 'text');
+    input.setAttribute('value', input_text);
+
+    td.appendChild(input);
+}
+
 // 設定新增車次的選單
 function set_select(id, data) {
     const select = document.getElementById(id);
@@ -308,8 +350,8 @@ function set_select(id, data) {
     });
 }
 
+// 比較兩個物件的屬性數量
 function deepCompare(obj1, obj2) {
-    // 比較兩個物件的屬性數量
     if (Object.keys(obj1).length !== Object.keys(obj2).length) {
         return false;
     }
@@ -332,4 +374,3 @@ function deepCompare(obj1, obj2) {
 
     return true;
 }
-
