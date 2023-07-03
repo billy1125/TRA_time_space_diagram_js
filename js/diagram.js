@@ -244,7 +244,7 @@ function mark_realtime_train_position(value, line_dir, train_kind, realtime_data
             axis_x = [coordinates_all_station[start_index][0], now_time_x_axis, coordinates_all_station[end_index][0]];
             axis_y = [coordinates_all_station[start_index][1], NaN, coordinates_all_station[end_index][1]];
 
-            if (axis_x[0] < axis_x[1] && axis_x[1] < axis_x[2]) {
+            if (axis_x[0] <= axis_x[1] && axis_x[1] <= axis_x[2]) {
                 const interpolatedArray = interpolateArray(axis_x, axis_y);
                 // console.log(interpolatedArray);
 
@@ -352,6 +352,6 @@ function get_now_time_x_axis(minus_time) {
     seconds = seconds === 60 ? '00' : seconds.toString().padStart(2, '0');
 
     const x = SVG_X_Axis[`${hours}:${minutes}:${seconds}`].ax1 * 10 - 1200 * DiagramHours[0] + 50;
-    // const x = SVG_X_Axis["10:19:00"].ax1 * 10 - 1200 * DiagramHours[0] + 50;
+    // const x = SVG_X_Axis["15:30:00"].ax1 * 10 - 1200 * DiagramHours[0] + 50;
     return x;
 }

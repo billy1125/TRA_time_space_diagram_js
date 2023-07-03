@@ -36,8 +36,8 @@ function loadScript(file) {
     });
 }
 
- // 讀取所有資料檔
-function initial_data() {   
+// 讀取所有資料檔
+function initial_data() {
     date = getFormattedDate();
     Promise.all([
         readJSONFile(file1),
@@ -53,7 +53,7 @@ function initial_data() {
             SVG_X_Axis = results[1];
             initial_line_data(results[2]);
             OperationLines = results[3];
-            CarKind = results[4];
+            CarKind = results[4];            
             // 在基本檔案載入完成後執行的函式
             execute(results[5], results[6]);
         })
@@ -64,39 +64,28 @@ function initial_data() {
 
 // 程式執行函式
 function execute(json_data, live_json_data) {
-
     // 清除已有的運行圖    
     const svg = document.querySelectorAll("svg");
     svg.forEach(function (svg) {
         svg.remove();
     });
 
-    const all_trains_data = json_to_trains_data(json_data, '', line_kind);  // 將JSON檔案轉換成時間空間資料
-    const realtime_trains = mark_realtime_trains(live_json_data);
-    draw(line_kind, all_trains_data, realtime_trains);
-}
-
-// JSON檔處理，將JSON檔案轉換成時間空間資料
-function json_to_trains_data(json_data, train_no_input, line_kind) {
-    let train = null;
-    let all_trains_data = [];
-    let train_no = "";
-
-    for (let i = 0; i < json_data['TrainInfos'].length; i++) {
-        train_no_input.length === 0 ? train_no = json_data['TrainInfos'][i]['Train'] : train_no = train_no_input;
-        // console.log(train_no)
-        if (json_data['TrainInfos'][i].Train == train_no) {
-            train = json_data['TrainInfos'][i];
-            train_data = calculate_space_time(train, line_kind);  // 車次資料處理，轉換成時間空間資料
-            all_trains_data.push(train_data);
-        }
+    try {
+        const all_trains_data = json_to_trains_data(json_data, '', line_kind);  // 將JSON檔案轉換成時間空間資料
+        const realtime_trains = mark_realtime_trains(live_json_data);           // 即時列車位置資料轉換
+        draw_diagram_background(line_kind);                                     // 繪製運行圖底圖(基礎時間與車站線)
+        draw_train_path(all_trains_data, realtime_trains);                      // 繪製每一個車次線
     }
-
-    return all_trains_data;
+    catch (error) {
+        console.log(error);
+    }
+    finally {
+        finish_draw(); 
+    }
 }
 
 // 標記即時列車位置
-function mark_realtime_trains(live_json_data){
+function mark_realtime_trains(live_json_data) {
     let realtime_trains = new Map();
     for (const iterator of live_json_data.TrainLiveBoards) {
         realtime_trains.set(iterator.TrainNo, iterator);
@@ -105,26 +94,18 @@ function mark_realtime_trains(live_json_data){
     return realtime_trains;
 }
 
-// 繪製運行圖
-function draw(line_kind, all_trains_data, realtime_trains) {
-    draw_diagram_background(line_kind);                    // 繪製運行圖底圖(基礎時間與車站線)
-    draw_train_path(all_trains_data, realtime_trains);     // 繪製每一個車次線
-
-    // 移除讀取中的文字
+function finish_draw() {
+    // 移除讀取中的文字標示
     var popup = document.getElementById("popup");
     const parentObj = popup.parentNode;
     parentObj.removeChild(popup);
 
     // 依照現在的時間，將視窗滾動到整點時間，方便使用者閱讀
     let now = new Date();
-    let hour_position = parseFloat(now.getHours()) - 4;
+    let min = screen.width >= 1000 ? 0 : parseFloat(now.getMinutes() - 10) / 60;
+    let hour_position = parseFloat(now.getHours()) + min - 4;
     if (hour_position > 0) {
         hour_position *= 1200;
-        scrollToPosition(hour_position, 0);
+        window.scrollTo(hour_position, 0);
     }
-}
-
-// 滾動到指定位置
-function scrollToPosition(xPostion, yPosition) {
-    window.scrollTo(xPostion, yPosition);
 }

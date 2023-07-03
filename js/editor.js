@@ -1,10 +1,11 @@
 let currentPage = 1;                // 現在的頁碼
 let trains_data = null;
+let date = null;
 
 // 定義基本檔案相依性
 const dependencies = [
     'js/configure/config.js',
-    'js/configure/env_var.js',
+    // 'js/configure/env_var.js',
     'js/configure/editor_var.js',
     'js/utilties/util.js',
     'js/model/trains_class.js',
@@ -20,9 +21,8 @@ async function loadDependencies() {
     for (const dependency of dependencies) {
         await loadScript(dependency);
     }
-    // 所有基本檔案載入完成後，執行其他函式
-    initial_data();
-    // initial_editor();
+    // 所有基本檔案載入完成後，執行其他函式    
+    initial_editor();
 }
 
 // 載入 JavaScript 檔案的函式
@@ -40,27 +40,28 @@ function loadScript(file) {
 function initial_data() {
     // 讀取所有資料檔
     Promise.all([
-        readJSONFile('data/realtime_diagram/20230702.json')
+        readJSONFile(`data/realtime_diagram/${date}.json`)
     ])
-        .then(function (results) {
-            trains_data = new TrainsClass();
-            trains_data.initial_trains(results[0]);
+        .then(function (results) {            
             // 在基本檔案載入完成後執行的函式
-            initial_editor();
+            trains_data.initial_trains(results[0]);
+            display_master();
         })
         .catch(function (error) {
-            console.error(error);
+            window.alert(`直接讀取今日時刻表資料錯誤，錯誤資訊：${error}`)
         });
 }
 
 // 編輯器初始化
 function initial_editor() {
+    trains_data = new TrainsClass();
+    date = getFormattedDate();
+
     set_select("line_dir", line_dir_kind);
     set_select("line", line_kind);
     set_select("car_class", car_kind);
     set_select("stations", stations_kind);
-
-    display_master();
+    set_select("operation_lines", operation_lines);
 }
 
 // 顯示主表

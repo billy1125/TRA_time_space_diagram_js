@@ -36,7 +36,7 @@ function loadScript(file) {
     });
 }
 
- // 讀取所有資料檔
+// 讀取所有資料檔
 function initial_data() {
     Promise.all([
         readJSONFile(file1),
@@ -52,7 +52,7 @@ function initial_data() {
             OperationLines = results[3];
             CarKind = results[4];
             // 在基本檔案載入完成後執行的函式
-            
+
         })
         .catch(function (error) {
             console.error(error);
@@ -111,42 +111,26 @@ function execute() {
     const file = file_input.files[0];
 
     if (typeof file !== "undefined") {
-        
-        const reader = new FileReader();
-        reader.onload = function (event) {
-            const contents = event.target.result;
-            json_to_trains_data(JSON.parse(contents), train_no, line_kind);  // 將JSON檔案轉換成時間空間資料
-        };
-        reader.readAsText(file);
+        try {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const contents = event.target.result;
+                const all_trains_data = json_to_trains_data(JSON.parse(contents), train_no, line_kind);  // 將JSON檔案轉換成時間空間資料
+                draw_diagram_background(line_kind);                                                      // 繪製運行圖底圖(基礎時間與車站線)
+                draw_train_path(all_trains_data);                                                        // 繪製每一個車次線
+            };
+            reader.readAsText(file);
+        }
+        catch (error) {
+            console.log(error);
+        }
+        finally {
+            btn_execute.disabled = false;
+            btn_download.disabled = false;
+        }
+
     } else {
         btn_execute.disabled = false;
         window.alert("請選擇正確的JSON格式檔案！");
     }
-}
-
-// JSON檔處理，將JSON檔案轉換成時間空間資料
-function json_to_trains_data(json_data, train_no_input, line_kind) {
-    let train = null;
-    let all_trains_data = [];
-    let train_no = "";
-
-    for (let i = 0; i < json_data['TrainInfos'].length; i++) {
-        train_no_input.length === 0 ? train_no = json_data['TrainInfos'][i]['Train'] : train_no = train_no_input;
-        // console.log(train_no)
-        if (json_data['TrainInfos'][i].Train == train_no) {
-            train = json_data['TrainInfos'][i];
-            train_data = calculate_space_time(train, line_kind);  // 車次資料處理，轉換成時間空間資料
-            all_trains_data.push(train_data);
-        }
-    }    
-    draw(line_kind, all_trains_data); 
-}
-
-// 繪製運行圖
-function draw(line_kind, all_trains_data){
-    draw_diagram_background(line_kind);   // 繪製運行圖底圖(基礎時間與車站線)
-    draw_train_path(all_trains_data);     // 繪製每一個車次線
-
-    btn_execute.disabled = false;
-    btn_download.disabled = false;
 }

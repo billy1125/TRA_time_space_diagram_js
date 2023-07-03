@@ -27,6 +27,9 @@ class TrainsClass {
 
     // 資料初始化
     initial_trains(jsonData) {
+        if (this.trains_map !== 0)
+            this.trains_map.clear();
+
         for (const iterator of jsonData.TrainInfos) {
             this.trains_map.set(iterator.Train, { "Train": iterator.Train, "LineDir": iterator.LineDir, "Line": iterator.Line, "CarClass": iterator.CarClass, "TimeInfos": iterator.TimeInfos });
         }

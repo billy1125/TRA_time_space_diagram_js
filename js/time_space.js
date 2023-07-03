@@ -1,3 +1,22 @@
+// JSON檔處理，將JSON檔案轉換成時間空間資料
+function json_to_trains_data(json_data, train_no_input, line_kind) {
+    let train = null;
+    let all_trains_data = [];
+    let train_no = "";
+
+    for (let i = 0; i < json_data['TrainInfos'].length; i++) {
+        train_no_input.length === 0 ? train_no = json_data['TrainInfos'][i]['Train'] : train_no = train_no_input;
+        // console.log(train_no)
+        if (json_data['TrainInfos'][i].Train == train_no) {
+            train = json_data['TrainInfos'][i];
+            train_data = calculate_space_time(train, line_kind);  // 車次資料處理，轉換成時間空間資料
+            all_trains_data.push(train_data);
+        }
+    }
+
+    return all_trains_data;
+}
+
 // 處理車次資料
 function calculate_space_time(train, line_kind) {
     // const after_midnight_data = [];                 // 跨午夜車次的資料

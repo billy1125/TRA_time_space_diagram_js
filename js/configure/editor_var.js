@@ -1,5 +1,22 @@
 const itemsPerPage = 20;              // 每一個分頁要顯示的資料數量
 
+const operation_lines = [
+    { id: "LINE_WN", dsc: "西部幹線北段(基隆-竹南)" },
+    { id: "LINE_WM", dsc: "西部幹線台中線(竹南-彰化，經苗栗)" },
+    { id: "LINE_WSEA", dsc: "西部幹線海岸線(竹南-彰化，經大甲)" },
+    { id: "LINE_WS", dsc: "西部幹線南段(彰化-高雄)" },
+    { id: "LINE_P", dsc: "屏東線(高雄-枋寮)" },
+    { id: "LINE_S", dsc: "南迴線(枋寮-台東)" },
+    { id: "LINE_T", dsc: "台東線(花蓮-台東)" },
+    { id: "LINE_N", dsc: "北迴線(蘇澳新-花蓮)" },
+    { id: "LINE_I", dsc: "宜蘭線(八堵-蘇澳)" },
+    { id: "LINE_PX", dsc: "平溪深澳線(八斗子-菁桐)" },
+    { id: "LINE_LJ", dsc: "內灣線(新竹-內灣)" },
+    { id: "LINE_NW", dsc: "六家線(新竹-六家)" },
+    { id: "LINE_J", dsc: "集集線(二水-車埕)" },
+    { id: "LINE_SL", dsc: "沙崙線(中洲-沙崙)" }
+]
+
 const line_dir_kind = [
     { id: 1, dsc: "順行" },
     { id: 2, dsc: "逆行" }

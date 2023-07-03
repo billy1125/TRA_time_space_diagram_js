@@ -34,9 +34,6 @@ function initial_line_data(file) {
 
 // 運行圖下載
 function download_file() {
-    var e = document.getElementById("line_kind");
-    var line_kind = e.options[e.selectedIndex].text;
-
     const xmlDoc = document.implementation.createDocument(null, null, null);
     const xmlDeclaration = xmlDoc.createProcessingInstruction("xml", 'version="1.0" encoding="UTF-8"');
     const stylesheet = xmlDoc.createProcessingInstruction("xml-stylesheet", 'type="text/css" href="style.css"');
@@ -49,11 +46,11 @@ function download_file() {
     const blob = new Blob([xmlString], { type: 'image/svg+xml' });
 
     if (window.navigator.msSaveOrOpenBlob) {
-        window.navigator.msSaveOrOpenBlob(blob, `export_diagram_${line_kind}.svg`);
+        window.navigator.msSaveOrOpenBlob(blob, `export.svg`);
     } else {
         const downloadLink = document.createElement('a');
         downloadLink.href = URL.createObjectURL(blob);
-        downloadLink.download = `export_diagram_${line_kind}.svg`;
+        downloadLink.download = `export.svg`;
         downloadLink.click();
         URL.revokeObjectURL(downloadLink.href);
     }

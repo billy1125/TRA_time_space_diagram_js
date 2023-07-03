@@ -141,12 +141,14 @@ function open_in_diagram() {
         obj.push(value);
     });
 
+    const option = document.getElementById("operation_lines");
+
     let data = {};
     data["TrainInfos"] = obj;
    
     var jsonText = JSON.stringify(data);
     window.localStorage.setItem("diagram_data", jsonText);
-    window.open('diagram_export.html', '_blank');
+    window.open('diagram_export.html?lineKind=' + option.value, '_blank');
 }
 
 // 上一頁連結
@@ -165,4 +167,8 @@ function move_next_page() {
         currentPage++;
         display_master();
     }
+}
+
+function read_sample(){
+    initial_data();
 }

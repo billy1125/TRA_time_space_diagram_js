@@ -1,5 +1,6 @@
+const url = new URL(location.href);
+const line_kind = url.searchParams.get('lineKind');
 const btn_download = document.getElementById("btn_download");
-btn_download.addEventListener("click", download_file);
 
 // 定義基本檔案相依性
 const dependencies = [
@@ -35,7 +36,7 @@ function loadScript(file) {
     });
 }
 
- // 讀取所有資料檔
+// 讀取所有資料檔
 function initial_data() {
     Promise.all([
         readJSONFile(file1),
@@ -60,45 +61,37 @@ function initial_data() {
 
 // 轉圖函式
 function execute() {
-    console.log("開始轉換")
+    btn_download.addEventListener("click", download_file);
 
-     // 清除已有的運行圖    
-     const svg = document.querySelectorAll("svg");
-     svg.forEach(function (svg) {
-         svg.remove();
-     });
+    // 清除已有的運行圖    
+    const svg = document.querySelectorAll("svg");
+    svg.forEach(function (svg) {
+        svg.remove();
+    });
+    
+    try {
+        let data = localStorage.getItem('diagram_data');
 
-    let data = localStorage.getItem('diagram_data');
-
-    if (typeof (data) != "undefined") {
-        console.log("有接到傳來的localStorage")
-        data = JSON.parse(data);
-        json_to_trains_data(data, '', "LINE_WN");
-    }   
-}
-
-// JSON檔處理，將JSON檔案轉換成時間空間資料
-function json_to_trains_data(json_data, train_no_input, line_kind) {
-    let train = null;
-    let all_trains_data = [];
-    let train_no = "";
-
-    for (let i = 0; i < json_data['TrainInfos'].length; i++) {
-        train_no_input.length === 0 ? train_no = json_data['TrainInfos'][i]['Train'] : train_no = train_no_input;
-        // console.log(train_no)
-        if (json_data['TrainInfos'][i].Train == train_no) {
-            train = json_data['TrainInfos'][i];
-            train_data = calculate_space_time(train, line_kind);  // 車次資料處理，轉換成時間空間資料
-            all_trains_data.push(train_data);
+        if (typeof (data) != "undefined") {
+            data = JSON.parse(data);
+            const all_trains_data = json_to_trains_data(data, '', line_kind);   // 將JSON檔案轉換成時間空間資料
+            draw_diagram_background(line_kind);                                 // 繪製運行圖底圖(基礎時間與車站線)
+            draw_train_path(all_trains_data);                                   // 繪製每一個車次線
         }
     }
-    draw(line_kind, all_trains_data);
+    catch (error) {
+        console.log(error);
+    }
+    finally {
+        finish_draw();
+    }
 }
 
-// 繪製運行圖
-function draw(line_kind, all_trains_data) {
-    draw_diagram_background(line_kind);   // 繪製運行圖底圖(基礎時間與車站線)
-    draw_train_path(all_trains_data);     // 繪製每一個車次線
+function finish_draw() {
+    // 移除讀取中的文字標示
+    var popup = document.getElementById("popup");
+    const parentObj = popup.parentNode;
+    parentObj.removeChild(popup);
 
     btn_download.disabled = false;
 }

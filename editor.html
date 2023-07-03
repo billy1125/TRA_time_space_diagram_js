@@ -12,15 +12,17 @@
     <h1>台鐵運行圖編輯器(開發中)</h1>
     <div id="header">
         <fieldset>
-            <legend>檔案管理</legend>
+            <legend>檔案管理</legend>            
             <input type="file" id="file_input" accept=".json">
-            <button id="btn_execute" onclick="file_upload()">讀取台鐵JSON檔</button>
-            <button onclick="file_save()">存檔</button>           
-            <button onclick="open_in_diagram()">直接轉運行圖</button>
+            <button id="btn_execute" onclick="file_upload()">讀取台鐵時刻表JSON檔</button>
+            <button onclick="read_sample()">直接讀取今日時刻表資料</button>
+            <button onclick="file_save()">存檔</button>
         </fieldset>
         <fieldset>
             <legend>資料處理</legend>
-            <button onclick="open_new_timetable()">建立新時刻表</button>
+            <button onclick="open_new_timetable()">建立新時刻表</button> | 台鐵路線
+            <select id="operation_lines"></select>
+            <button onclick="open_in_diagram()">直接轉運行圖</button>
         </fieldset>
     </div>
     <div class="train-master">
