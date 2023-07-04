@@ -117,7 +117,9 @@ function execute() {
                 const contents = event.target.result;
                 const all_trains_data = json_to_trains_data(JSON.parse(contents), train_no, line_kind);  // 將JSON檔案轉換成時間空間資料
                 draw_diagram_background(line_kind);                                                      // 繪製運行圖底圖(基礎時間與車站線)
-                draw_train_path(all_trains_data);                                                        // 繪製每一個車次線
+                draw_train_path(all_trains_data);                                                      // 繪製每一個車次線
+                
+                set_user_styles();
             };
             reader.readAsText(file);
         }
@@ -133,4 +135,21 @@ function execute() {
         btn_execute.disabled = false;
         window.alert("請選擇正確的JSON格式檔案！");
     }
+}
+
+function set_user_styles(){
+    const user_data = JSON.parse(localStorage.getItem("user_styles"));
+   
+    Object.entries(user_data).forEach(([key, value]) => {
+        Object.entries(value).forEach(([k, v]) => {
+            const elements = document.getElementsByClassName(k);
+            for (const iterator of elements) {
+                if (key in ["text_styles", "train_mark_kind"])
+                    iterator.style.fill = v;
+                else
+                    iterator.style.stroke = v;
+            }
+           
+        })
+    })
 }
