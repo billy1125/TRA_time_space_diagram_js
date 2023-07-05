@@ -7,6 +7,7 @@ function draw_diagram_background(line_kind) {
             const draw = SVG().addTo('body').size(width, height + 75);           // 設定SVG物件
             const text_spacing_factor = 500;
             const date = Date().toLocaleString();
+            const now_time_x_axis = get_now_time_x_axis(0);
 
             const title = `${value['NAME']} 。運行圖繪製完成時間：${date}`;        // 運行圖標題文字設定
             add_text(draw, title, 5, 0, null);
@@ -76,6 +77,7 @@ function draw_diagram_background(line_kind) {
             })
 
             diagram_objects[key] = draw;
+            add_line(draw, now_time_x_axis, 50, now_time_x_axis, height + 50, "now_time_line");
         }
     })
 }

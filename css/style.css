@@ -37,6 +37,12 @@ svg {
     stroke: #0105e0
 }
 
+.now_time_line {
+    stroke: #ff0000;
+    stroke-width: 1.5;
+    stroke-dasharray: 6, 1;
+}
+
 .station {
     fill: #000
 }
@@ -165,31 +171,4 @@ path:hover {
 
 path:focus {
     stroke-width: 6
-}
-
-circle {
-    animation-name: pulse;
-    animation-duration: 2s;
-    animation-iteration-count: infinite;
-    animation-direction: normal;
-    /* not "linear" */
-    animation-fill-mode: forwards;
-  
-}
-
-@keyframes pulse {
-    0% {
-        opacity: 20%;
-        r: 5
-    }
-
-    50% {
-        opacity: 100%;
-        r: 7.5
-    }
-
-    100% {
-        opacity: 20%;
-        r: 5
-    }
 }

@@ -5,97 +5,151 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>台鐵運行圖編輯器</title>
-    <link rel="stylesheet" href="css/editor.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+
+    <!-- <link rel="stylesheet" href="css/editor.css"> -->
 </head>
 
-<body>
-    <h1>台鐵運行圖編輯器(開發中)</h1>
-    <div id="header">
-        <fieldset>
-            <legend>檔案管理</legend>            
-            <input type="file" id="file_input" accept=".json">
-            <button id="btn_execute" onclick="file_upload()">讀取台鐵時刻表JSON檔</button>
-            <button onclick="read_sample()">直接讀取今日時刻表資料</button>
-            <button onclick="file_save()">存檔</button>
-        </fieldset>
-        <fieldset>
-            <legend>資料處理</legend>
-            <button onclick="open_new_timetable()">建立新時刻表</button> | 台鐵路線
-            <select id="operation_lines"></select>
-            <button onclick="open_in_diagram()">直接轉運行圖</button>
-        </fieldset>
-    </div>
-    <div class="train-master">
-        <div class="table-title">各車次資訊</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>刪除</th>
-                    <th>車次</th>
-                    <th>順逆行</th>
-                    <th>經由路線</th>
-                    <th>列車種類</th>
-                </tr>
-            </thead>
-            <tbody id="mainTableContainer">
-                <!-- <tr>
-                    <td>The table body</td>
-                    <td>with two columns</td>
-                    <td>The table body</td>
-                    <td>with two columns</td>
-                </tr> -->
-            </tbody>
-        </table>
+<body style="padding-top:40px;">
 
-        <!-- <div id="pagination">
-            <table>
-                <tr>
-                    <td>上一頁</td>
-                    <td></td>
-                    <td>下一頁</td>
-                </tr>
-            </table>
-        </div> -->
-        <div>
-            <table>
-                <tr>
-                    <td id="last_page"><a href="#" onclick="move_last_page()">上一頁</a></td>
-                    <td id="pagination" class="pages"></td>
-                    <td id="next_page"><a href="#" onclick="move_next_page()">下一頁</a></td>
-                </tr>
-            </table>
+    <div id="navbar"></div>
+
+    <div class="jumbotron" style="padding-top: 10px !important; padding-bottom: 10px !important;">
+        <div class="container text-center">
+            <h1>台鐵運行圖編輯器</h1>
         </div>
-        <fieldset>
-            <legend>新增車次</legend>
-            車次號：<input id="train_no" placeholder="請輸入一個車次號" type="text"><br />
-            順逆行：<select id="line_dir"></select><br />
-            經由路線：<select id="line"></select><br />
-            列車種類：<select id="car_class"></select>
-            <button id="add_new_train" onclick="add_new_train()">新增一個車次</button>
-        </fieldset>
+    </div>
+
+    <div class="container-fluid bg-1">
+        <div class="row">
+            <div class="col-md-6 portfolio-item">
+                <form class="form-inline">
+                    <div class="form-group">
+                        <input type="file" id="file_input" accept=".json" class="form-control">
+                        <a id="btn_execute" onclick="file_upload()" class="btn btn-primary">讀取台鐵時刻表JSON檔</a>
+                        <a onclick="read_sample()" class="btn btn-primary">直接讀取今日時刻表資料</a>
+                        <a onclick="file_save()" class=" btn btn-primary">存檔</a>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-6 portfolio-item">
+                <form class="form-inline">
+                    <div class="form-group">
+                        <a onclick="open_new_timetable()" class="btn btn-primary">建立新時刻表</a>
+                        台鐵路線選擇：<select id="operation_lines" class="form-control"></select>
+                        <a onclick="open_in_diagram()" class="btn btn-primary">直接轉運行圖</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row text-center">
+            <div class="col-md-6 portfolio-item">
+                <h2>各車次資訊</h2>
+                <table class="table table-striped table-hover">
+                    <thead style="background-color: blanchedalmond;">
+                        <tr>
+                            <th>刪除</th>
+                            <th>車次</th>
+                            <th>順逆行</th>
+                            <th>經由路線</th>
+                            <th>列車種類</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mainTableContainer"></tbody>
+                </table>
+                <div>
+                    <nav aria-label="...">
+                        <ul class="pager">
+                          <li class="previous"><a href="#" onclick="move_last_page()"><span aria-hidden="true">&larr;</span> 上一頁</a></li>
+                          <li id="pagination"></li>
+                          <li class="next"><a href="#" onclick="move_next_page()">下一頁 <span aria-hidden="true">&rarr;</span></a></li>
+                        </ul>
+                      </nav>
+                </div>
+                <form class="form-horizontal text-center">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">車次號</label>
+                        <div class="col-sm-10">
+                            <input id="train_no" placeholder="請輸入一個車次號" type="text" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">順逆行</label>
+                        <div class="col-sm-10">
+                            <select id="line_dir" class="form-control"></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">經由路線</label>
+                        <div class="col-sm-10">
+                            <select id="line" class="form-control"></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">列車種類</label>
+                        <div class="col-sm-10">
+                            <select id="car_class" class="form-control"></select>
+                        </div>
+                    </div>
+                    <a id="add_new_train" onclick="add_new_train()" class="btn btn-primary">新增一個車次</a>
+                </form>
+            </div>
+            <div class="col-md-6 portfolio-item">
+                <h2>第<span id="select-train-no"> </span>車次停靠/通過車站</h2>
+                <table class="table table-striped table-hover">
+                    <thead style="background-color: blanchedalmond;">
+                        <tr>
+                            <th>順序</th>
+                            <th>車站</th>
+                            <th>到站時間</th>
+                            <th>離站時間</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detailTableContainer"></tbody>
+                </table>
+                <form class="form-horizontal text-center">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">車站</label>
+                        <div class="col-sm-10">
+                            <select id="stations" class="form-control"></select>
+                        </div>
+                    </div>
+ 
+
+                    <a id="add_new_train" onclick="add_new_station()" class="btn btn-primary">新增一個車站</a>
+                    <a onclick="stations_temp_save()" class="btn btn-primary">暫存時刻表</a>
+                </form>
+
+            </div>
+        </div>
+    </div>
+    <!-- <div class="train-master">
+
+
+
     </div>
     <div class="train-detail">
-        <div class="table-title">第<span id="select-train-no"> </span>車次停靠/通過車站</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>順序</th>
-                    <th>車站</th>
-                    <th>到站時間</th>
-                    <th>離站時間</th>
-                </tr>
-            </thead>
-            <tbody id="detailTableContainer"></tbody>
-        </table>
 
-        <fieldset>
-            <legend>新增車站</legend>
-            車站：<select id="stations"></select>
-            <button id="add_new_train" onclick="add_new_station()">新增一個車站</button>
-            <button onclick="stations_temp_save()">暫存時刻表</button>
-        </fieldset>
-    </div>
+    </div> -->
 </body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="js/editor.js" defer></script>
+
+<script src="js/web_config.js" defer></script>
+<script src="js/web.js" defer></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#web_name').append(web_name)
+        $('#today_date').append(today_date)
+        $("meta[name='description']").attr("content", description)
+        $("meta[name='keywords']").attr("content", keywords)
+        $('footer').append(footer)
+        $("#navbar").load("navbar.html")
+    })
+</script>
 
 </html>

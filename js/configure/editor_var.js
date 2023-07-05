@@ -1,4 +1,4 @@
-const itemsPerPage = 20;              // 每一個分頁要顯示的資料數量
+const itemsPerPage = 10;              // 每一個分頁要顯示的資料數量
 
 const operation_lines = [
     { id: "LINE_WN", dsc: "西部幹線北段(基隆-竹南)" },

@@ -183,7 +183,7 @@ function updatePagination() {
 
         if (startPage > 0) {
             var ellipsis = document.createElement('span');
-            ellipsis.textContent = '...';
+            ellipsis.textContent = '.....';
             pagination.appendChild(ellipsis);
         }
     }
@@ -196,7 +196,7 @@ function updatePagination() {
         pageLink.dataset.page = i;
 
         if (i === currentPage) {
-            pageLink.classList.add('active');
+            pageLink.style.backgroundColor = "#a9d4b5";
         }
 
         pageLink.addEventListener('click', function (e) {
@@ -207,18 +207,18 @@ function updatePagination() {
 
         pagination.appendChild(pageLink);
 
-        if (i < endPage) {
-            var spacing = document.createElement('span');
-            spacing.textContent = ' ';
-            pagination.appendChild(spacing);
-        }
+        // if (i < endPage) {
+        //     var spacing = document.createElement('span');
+        //     spacing.textContent = ' ';
+        //     pagination.appendChild(spacing);
+        // }
     }
 
     // 最後頁碼
     if (endPage < totalPages) {
         if (endPage < totalPages - 1) {
             var ellipsis = document.createElement('span');
-            ellipsis.textContent = '...';
+            ellipsis.textContent = '......';
             pagination.appendChild(ellipsis);
         }
 

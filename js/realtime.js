@@ -1,6 +1,7 @@
 const url = new URL(location.href);
 const line_kind = url.searchParams.get('lineKind');
 let date = null;
+let circle_blink = null;
 
 // 定義基本檔案相依性
 const dependencies = [
@@ -76,6 +77,14 @@ function execute(json_data, live_json_data) {
         draw_diagram_background(line_kind);                                     // 繪製運行圖底圖(基礎時間與車站線)
         draw_train_path(all_trains_data, realtime_trains);                      // 繪製每一個車次線
         set_user_styles();
+
+        // 获取SVG圆形元素
+        circle_blink = document.getElementsByTagName("circle");
+        for (const iterator of circle_blink) {           
+            iterator.setAttribute("opacity", "1");
+        }
+        setInterval(blink, 500);
+      
     }
     catch (error) {
         console.log(error);
@@ -111,19 +120,33 @@ function finish_draw() {
     }
 }
 
-function set_user_styles(){
+function set_user_styles() {
     const user_data = JSON.parse(localStorage.getItem("user_styles"));
-   
-    Object.entries(user_data).forEach(([key, value]) => {
-        Object.entries(value).forEach(([k, v]) => {
-            const elements = document.getElementsByClassName(k);
-            for (const iterator of elements) {
-                if (key in ["text_styles", "train_mark_kind"])
-                    iterator.style.fill = v;
-                else
-                    iterator.style.stroke = v;
-            }
-           
+
+    if (user_data != null) {
+        Object.entries(user_data).forEach(([key, value]) => {
+            Object.entries(value).forEach(([k, v]) => {
+                const elements = document.getElementsByClassName(k);
+                for (const iterator of elements) {
+                    if (key in ["text_styles", "train_mark_kind"])
+                        iterator.style.fill = v;
+                    else
+                        iterator.style.stroke = v;
+                }
+
+            })
         })
-    })
+    }
 }
+
+function blink() {
+    for (const iterator of circle_blink) {           
+        if (iterator.getAttribute("opacity") === "0") {
+            iterator.setAttribute("opacity", "1");
+        } else if (iterator.getAttribute("opacity") === "1") {
+            iterator.setAttribute("opacity", "0");
+        }
+    }   
+}
+
+
