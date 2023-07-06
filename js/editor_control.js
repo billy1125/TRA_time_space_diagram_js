@@ -55,9 +55,10 @@ function add_new_station() {
         // row.addEventListener('click', function () {
         // showDetails(item.Train);
         // });
-
+        // 順序
         add_text_td(row, new_row_index);
-
+        // 刪除欄位
+        add_button_td(row, "刪除", new_row_index);
         // 車站欄位
         add_td_selection(row, stations_kind, "sel-station-" + new_row_index);
         // 到站時間
@@ -135,7 +136,7 @@ function file_save() {
 }
 
 // 直接轉運行圖按鍵
-function open_in_diagram() {  
+function open_in_diagram() {
     var obj = [];
     trains_data.trains_map.forEach(function (value, key) {
         obj.push(value);
@@ -145,10 +146,10 @@ function open_in_diagram() {
 
     let data = {};
     data["TrainInfos"] = obj;
-   
+
     var jsonText = JSON.stringify(data);
     window.localStorage.setItem("diagram_data", jsonText);
-    window.open('diagram_export.html?lineKind=' + option.value, '_blank');
+    window.open('export.html?lineKind=' + option.value, '_blank');
 }
 
 // 上一頁連結
@@ -169,6 +170,6 @@ function move_next_page() {
     }
 }
 
-function read_sample(){
+function read_sample() {
     initial_data();
 }

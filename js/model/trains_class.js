@@ -37,6 +37,7 @@ class TrainsClass {
         this.update_tables();
     }
 
+    // 清除所有資料
     clear_all_data() {
         this.trains_map = new Map();
         this.master_train_info = [];
@@ -110,6 +111,10 @@ class TrainsClass {
             return true;
         } else
             return false;
+    }
+
+    delete_station(id) {
+        this.selected_train.TimeTable.splice(id, 1);
     }
 
     // 下載檔案的函式

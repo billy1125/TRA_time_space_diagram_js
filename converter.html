@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-tw">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台鐵時刻表JSON公開資料轉運行圖</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+
+<body style="padding-top:40px;">
+
+    <div id="navbar"></div>
+
+    <div class="jumbotron">
+        <div class="container text-center">
+            <h1>台鐵時刻表JSON公開資料轉運行圖</h1>
+            <p>本網站繪製的運行圖均來自台鐵公開資料或使用者自行產生的資料所繪製，並非實際鐵路運作實況，僅供參考</p>
+            <p>正確資料與實際運轉狀況請以台鐵網站或公告為主</p>
+            <a href="https://ods.railway.gov.tw/tra-ods-web/ods/download/dataResource/railway_schedule/JSON/list" class="btn btn-primary btn-lg">台鐵時刻表JSON公開資料下載</a>
+            <a href="css/style.css" class="btn btn-primary btn-lg">運行圖CSS樣式檔下載</a>
+        </div>
+    </div>
+
+    <div class="container bg-1">
+        <div class="row">
+            <div class="col-md-12 portfolio-item">
+                <form class="form">
+                    <div class="form-group">
+                        <label>台鐵公開資料JSON檔上載</label>
+                        <input type="file" id="file_input" accept=".json" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>繪製特定車次號</label>
+                        <input id="train_no" placeholder="你可以選擇特定車次號" type="text" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>經由路線</label>
+                        <select id="line_kind" class="form-control"></select>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 portfolio-item text-center">
+                <br>
+                <button id="btn_execute" onclick="execute()" class="btn btn-success btn-lg">台鐵JSON轉檔</button>
+                <button id="btn_download" onclick="download_file()" class="btn btn-primary btn-lg" disabled>下載運行圖</button>
+            </div>
+        </div>
+    </div>
+    </div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="js/converter.js"></script>
+<script src="js/web_config.js" defer></script>
+<script src="js/web.js" defer></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#web_name').append(web_name)
+        $('#today_date').append(today_date)
+        $("meta[name='description']").attr("content", description)
+        $("meta[name='keywords']").attr("content", keywords)
+        $('footer').append(footer)
+        $("#navbar").load("navbar.html")
+    })
+</script>
+
+</html>

@@ -81,7 +81,7 @@ function initial_ui() {
 
     btn_execute = document.getElementById("btn_execute");
     btn_download = document.getElementById("btn_download");
-    btn_download.addEventListener("click", download_file);
+    // btn_download.addEventListener("click", download_file);
 
     // 建立要新增的子元素
     Object.entries(selections).forEach(([key, value]) => {

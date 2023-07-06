@@ -42,7 +42,7 @@ function initial_data() {
     Promise.all([
         readJSONFile(`data/realtime_diagram/${date}.json`)
     ])
-        .then(function (results) {            
+        .then(function (results) {
             // 在基本檔案載入完成後執行的函式
             trains_data.initial_trains(results[0]);
             display_master();
@@ -95,8 +95,8 @@ function display_master() {
             add_button_td(row, "刪除", item.Train);
 
             // 車次欄位
-            add_textbox_td(row, item.Train, "input-train-" + item.Train);
-            // add_text_td(row, item.Train);
+            // add_textbox_td(row, item.Train, "input-train-" + item.Train);
+            add_text_td(row, item.Train);
 
             // 順逆行欄位
             add_td_selection(row, line_dir_kind, "sel-dir-" + item.Train);
@@ -117,35 +117,39 @@ function display_master() {
 
 // 顯示副表
 function display_detail(id) {
-
+    let row_index = 0;
     detailTableContainer.innerHTML = ''; // 清空副表
 
-    var select_train_no = document.getElementById("select-train-no");
-    select_train_no.innerHTML = id;
+    if (id != -1) {
+        var select_train_no = document.getElementById("select-train-no");
+        select_train_no.innerHTML = id;
 
-    // 以車次號查詢副表內容
-    let details = trains_data.detail_time_info.find(function (item) {
-        return item.Train === id;
-    });
+        // 以車次號查詢副表內容
+        let details = trains_data.detail_time_info.find(function (item) {
+            return item.Train === id;
+        });
 
-    trains_data.selected_train.TimeInfos = details;
+        trains_data.selected_train = details;
+    }
 
-    details.TimeTable.forEach(function (item) {
+    trains_data.selected_train.TimeTable.forEach(function (item) {
         let row = document.createElement('tr');
         detailTableContainer.appendChild(row);
+        row_index += 1;
 
-        add_text_td(row, item.Order);
-
+        // 順序
+        add_text_td(row, row_index);
+        // 刪除欄位
+        add_button_td(row, "刪除", row_index);
         // add_text_td(row, item.Station);
-        add_td_selection(row, stations_kind, "sel-station-" + item.Order);
-        select_update("sel-station-" + item.Order, item.Station);
-
-        add_textbox_td(row, item.ARRTime, "input-arrtime-" + item.Order);
-        add_textbox_td(row, item.DEPTime, "input-deptime-" + item.Order);
-
-        // detailTableContainer.appendChild(detailRow);
+        // 車站
+        add_td_selection(row, stations_kind, "sel-station-" + row_index);
+        select_update("sel-station-" + row_index, item.Station);
+        // 到站時間
+        add_textbox_td(row, item.ARRTime, "input-arrtime-" + row_index);
+        // 離站時間
+        add_textbox_td(row, item.DEPTime, "input-deptime-" + row_index);
     });
-
 }
 
 // 更新頁碼
@@ -263,7 +267,7 @@ function select_hightlight(id, row) {
             last_row.setAttribute('style', '');
         }
 
-    row.setAttribute('style', 'background-color:#F00');
+    row.setAttribute('style', 'background-color:#FFD700');
     trains_data.last_selected_train_no = id;
 }
 
@@ -280,29 +284,38 @@ function select_update(id, select_value) {
 }
 
 // 增加文字型態儲存格
-function add_text_td(row_element, inner_text) {
+function add_text_td(row_element, inner_text, dom_id) {
     let td = document.createElement('td');
     td.innerHTML = inner_text;
     row_element.appendChild(td);
 }
 
 // 增加按鍵型態儲存格(刪除)
-function add_button_td(row_element, inner_text, dom_id) {
+function add_button_td(row_element, inner_text, id, is_master) {
     let td = document.createElement('td');
     row_element.appendChild(td);
 
     let button = document.createElement("button");
     button.innerHTML = inner_text;
-    if (dom_id !== '')
-        button.setAttribute('id', "sel-del-" + dom_id);
+    if (id !== '')
+        button.setAttribute('id', "sel-del-" + id);
     td.appendChild(button);
 
-    button.addEventListener('click', function () {
-        let check = window.confirm(`您確定要刪除第 ${dom_id} 車次？`);
-        if (check == true) {
-            trains_data.delete_train_map(dom_id);
 
-            display_master();
+    button.addEventListener('click', function () {
+        if (is_master) {
+            let check = window.confirm(`您確定要刪除第 ${id} 車次？`);
+            if (check == true) {
+                trains_data.delete_train_map(id);
+                display_master();
+            }
+        }
+        else {
+            let check = window.confirm(`您確定要刪除這個車站？`);
+            if (check == true) {
+                trains_data.delete_station(id - 1);
+                display_detail(-1);
+            }
         }
     });
 }
