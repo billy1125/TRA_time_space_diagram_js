@@ -26,19 +26,14 @@ function add_new_train() {
             "CarClass": car_class.value,
             "TimeInfos": []
         });
-        // trains_data.selected_train = { "Train": train_no.value, "LineDir": line_dir.value, "Line": line.value, "CarClass": car_class.value };
-        // const train_id = train_no.value;
-        if (results) {
-            display_master();
 
-        }
-        else {
-            window.alert("目前資料中已經有這個車次號！")
-        }
+        if (results) 
+            to_last_Page();
+        else 
+            window.alert("目前資料中已經有這個車次號！");
     }
-    else {
-        window.alert("請輸入一個新的車次號！")
-    }
+    else 
+        window.alert("請輸入一個新的車次號！");
 }
 
 // 新增車站按鍵
@@ -51,10 +46,6 @@ function add_new_station() {
         const row = document.createElement('tr');
         detailTableContainer.appendChild(row);
 
-        // row.innerHTML = item.Train;
-        // row.addEventListener('click', function () {
-        // showDetails(item.Train);
-        // });
         // 順序
         add_text_td(row, new_row_index);
         // 刪除欄位
@@ -67,34 +58,8 @@ function add_new_station() {
         add_textbox_td(row, "12:00:00", "input-deptime-" + new_row_index);
 
         select_update("sel-station-" + new_row_index, stations.value);
-    }
-    else {
-        window.alert("目前您沒有選擇一個車次！");
-    }
-}
 
-// 暫存時刻表按鍵
-function stations_temp_save() {
-    if (trains_data.selected_train_no != "-1") {
-        let time_infos = [];
-        const rows = detailTableContainer.getElementsByTagName("tr");
-
-        for (var i = 1; i < rows.length + 1; i++) {
-            time_infos.push({
-                "Station": document.getElementById("sel-station-" + i).value,
-                "Order": i.toString(),
-                "DEPTime": document.getElementById("input-deptime-" + i).value,
-                "ARRTime": document.getElementById("input-arrtime-" + i).value
-            })
-        }
-        // trains_data.selected_train.TimeInfos = time_infos;
-
-        if (time_infos.length > 0) {
-            if (trains_data.update_train_map(trains_data.selected_train_no, time_infos))
-                window.alert("暫存成功！");
-        } else {
-            window.alert("目前您沒有新增任何一個車站！");
-        }
+        check_is_update(trains_data.selected_train_no, "detail");
     }
     else {
         window.alert("目前您沒有選擇一個車次！");
@@ -123,6 +88,7 @@ function file_upload() {
 
 // 檔案存檔按鍵
 function file_save() {
+    check_is_update(trains_data.selected_train_no, "detail");
     let json_object = { TrainInfos: [] };
 
     trains_data.trains_map.forEach(function (value, key) {
@@ -170,6 +136,13 @@ function move_next_page() {
     }
 }
 
+// 到最後一頁
+function to_last_Page() {
+    currentPage = Math.ceil(trains_data.master_train_info.length / itemsPerPage);
+    display_master();
+}
+
+// 讀取測試檔案
 function read_sample() {
     initial_data();
 }

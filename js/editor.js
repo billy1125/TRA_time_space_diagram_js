@@ -92,22 +92,22 @@ function display_master() {
             mainTableContainer.appendChild(row);
 
             // 刪除欄位
-            add_button_td(row, "刪除", item.Train);
+            add_button_td(row, "刪除", item.Train, true);
 
             // 車次欄位
             // add_textbox_td(row, item.Train, "input-train-" + item.Train);
             add_text_td(row, item.Train);
 
             // 順逆行欄位
-            add_td_selection(row, line_dir_kind, "sel-dir-" + item.Train);
+            add_td_selection(row, line_dir_kind, "sel-dir-" + item.Train, true);
             select_update("sel-dir-" + item.Train, item.LineDir);
 
             // 經由路線
-            add_td_selection(row, line_kind, "sel-line-" + item.Train);
+            add_td_selection(row, line_kind, "sel-line-" + item.Train, true);
             select_update("sel-line-" + item.Train, item.Line);
 
             // 車種欄位
-            add_td_selection(row, car_kind, "sel-car-" + item.Train);
+            add_td_selection(row, car_kind, "sel-car-" + item.Train, true);
             select_update("sel-car-" + item.Train, item.CarClass);
         });
     }
@@ -140,10 +140,10 @@ function display_detail(id) {
         // 順序
         add_text_td(row, row_index);
         // 刪除欄位
-        add_button_td(row, "刪除", row_index);
+        add_button_td(row, "刪除", row_index, false);
         // add_text_td(row, item.Station);
         // 車站
-        add_td_selection(row, stations_kind, "sel-station-" + row_index);
+        add_td_selection(row, stations_kind, "sel-station-" + row_index, false);
         select_update("sel-station-" + row_index, item.Station);
         // 到站時間
         add_textbox_td(row, item.ARRTime, "input-arrtime-" + row_index);
@@ -239,31 +239,13 @@ function updatePagination() {
     }
 }
 
-function check_is_update(train_no) {
-    const train_data = trains_data.trains_map.get(train_no);
-    const data_in_class = {
-        "LineDir": train_data.LineDir,
-        "Line": train_data.Line,
-        "CarClass": train_data.CarClass
-    };
-
-    const data_on_ui = {
-        "LineDir": document.getElementById("sel-dir-" + train_no).value,
-        "Line": document.getElementById("sel-line-" + train_no).value,
-        "CarClass": document.getElementById("sel-car-" + train_no).value
-    };
-    if (deepCompare(data_in_class, data_on_ui) == false) {
-        trains_data.update_train(train_no, data_on_ui.LineDir, data_on_ui.Line, data_on_ui.CarClass);
-    }
-}
-
 // 將選擇的車次標為紅色
 function select_hightlight(id, row) {
     let last_row = document.getElementById(trains_data.last_selected_train_no);
 
     if (last_row != null)
         if (last_row.id != id) {
-            check_is_update(last_row.id);
+            // check_is_update(last_row.id);
             last_row.setAttribute('style', '');
         }
 
@@ -298,9 +280,8 @@ function add_button_td(row_element, inner_text, id, is_master) {
     let button = document.createElement("button");
     button.innerHTML = inner_text;
     if (id !== '')
-        button.setAttribute('id', "sel-del-" + id);
+        button.setAttribute('id', "del-" + id);
     td.appendChild(button);
-
 
     button.addEventListener('click', function () {
         if (is_master) {
@@ -321,33 +302,49 @@ function add_button_td(row_element, inner_text, id, is_master) {
 }
 
 // 增加選項儲存格
-function add_td_selection(row_element, selection_kind, dom_id) {
-    let td = document.createElement('td');
+function add_td_selection(row_element, selection_kind, dom_id, is_master) {
+    const td = document.createElement('td');
     row_element.appendChild(td);
 
-    let select = document.createElement("select");
+    const select = document.createElement("select");
     if (dom_id !== '')
         select.setAttribute('id', dom_id);
 
     selection_kind.forEach(function (optionData) {
-        var option = document.createElement("option");
+        const option = document.createElement("option");
         option.value = optionData.id;
         option.text = optionData.id + " - " + optionData.dsc;
         select.appendChild(option);
     });
+
     td.appendChild(select);
+
+    select.addEventListener('change', function () {
+        if (is_master)
+            check_is_update(trains_data.selected_train_no, "master");
+        else
+            check_is_update(trains_data.selected_train_no, "detail");
+    });
 }
 
 // 增加編輯文字框儲存格
 function add_textbox_td(row_element, input_text, dom_id) {
-    let td = document.createElement('td');
+    const td = document.createElement('td');
     row_element.appendChild(td);
 
-    let input = document.createElement("input");
+    const input = document.createElement("input");
     if (dom_id !== '')
         input.setAttribute('id', dom_id);
     input.setAttribute('type', 'text');
     input.setAttribute('value', input_text);
+    input.addEventListener('focusout', function () {
+        const input_value = input.value;
+        var regex = /^([01]\d|2[0-3]):([0-5]\d):(00|30)$/;
+        if (regex.test(input_value) === true)
+            check_is_update(trains_data.selected_train_no, "detail");
+        else
+            window.alert("請輸入24小時制的時間，例如：12:39:30、18:56:00，並且秒僅能設定為00或30");
+    });
 
     td.appendChild(input);
 }
@@ -362,6 +359,46 @@ function set_select(id, data) {
         option.text = optionData.id + " - " + optionData.dsc;
         select.appendChild(option);
     });
+}
+
+// 更新資料
+function check_is_update(train_no, kind) {
+
+    if (kind == "master") {
+        const train_data = trains_data.trains_map.get(train_no);
+        const data_in_class = {
+            "LineDir": train_data.LineDir,
+            "Line": train_data.Line,
+            "CarClass": train_data.CarClass
+        };
+
+        const data_on_ui = {
+            "LineDir": document.getElementById("sel-dir-" + train_no).value,
+            "Line": document.getElementById("sel-line-" + train_no).value,
+            "CarClass": document.getElementById("sel-car-" + train_no).value
+        };
+        if (deepCompare(data_in_class, data_on_ui) == false) {
+            trains_data.update_train(train_no, data_on_ui.LineDir, data_on_ui.Line, data_on_ui.CarClass);
+        }
+    }
+    else if (kind == "detail") {
+        let time_infos = [];
+        const rows = detailTableContainer.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length + 1; i++) {
+            time_infos.push({
+                "Station": document.getElementById("sel-station-" + i).value,
+                "Order": i.toString(),
+                "DEPTime": document.getElementById("input-deptime-" + i).value,
+                "ARRTime": document.getElementById("input-arrtime-" + i).value
+            })
+        }
+
+        if (time_infos.length > 0) {
+            trains_data.selected_train.TimeTable = time_infos;
+            trains_data.update_train_map(trains_data.selected_train_no, time_infos);
+        }
+    }
 }
 
 // 比較兩個物件的屬性數量

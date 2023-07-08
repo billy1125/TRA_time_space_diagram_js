@@ -81,6 +81,8 @@ function execute() {
     }
     catch (error) {
         console.log(error);
+        window.alert("無法繪製，請檢查您的資料！\n可能的原因包括：部分車次沒有安排車站停靠或經過、經過的車站不合理(順逆行設定錯誤、山海線設定錯誤等)、時間格式錯誤...");
+        window.close();
     }
     finally {
         finish_draw();
