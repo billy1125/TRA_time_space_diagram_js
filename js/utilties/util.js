@@ -20,12 +20,11 @@ function readJSONFile(file) {
 function initial_line_data(file) {
     Object.entries(file).forEach(([key, value]) => {
         let stations_loc = {};
-        let stations_loc_for_background = {};
+        let stations_loc_for_background = [];
         for (let i = 0; i < value.length; i++) {
             if (value[i]['ID'] != 'NA')
                 stations_loc[value[i]['ID']] = { 'DSC': value[i]['DSC'], 'SVGYAXIS': value[i]['SVGYAXIS'] };
-
-            stations_loc_for_background[value[i]['ID']] = { 'DSC': value[i]['DSC'], 'SVGYAXIS': value[i]['SVGYAXIS'], 'TERMINAL': value[i]['TERMINAL'] };
+            stations_loc_for_background.push({'ID': value[i]['ID'], 'DSC': value[i]['DSC'], 'SVGYAXIS': value[i]['SVGYAXIS'], 'TERMINAL': value[i]['TERMINAL'] });
         }
         LinesStations[key] = stations_loc;
         LinesStationsForBackground[key] = stations_loc_for_background;

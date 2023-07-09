@@ -132,6 +132,8 @@ function set_path(line_kind, train_no, train_kind, value) {
     let path = "M";
     let coordinates = [];
     let style = CarKind[train_kind];
+    const diagram_need_stop = find_diagram_need_to_stop(line_kind);
+
     if (typeof (style) == "undefined") {
         style = "special";
     }
@@ -141,7 +143,7 @@ function set_path(line_kind, train_no, train_kind, value) {
         let y = loc + 50;
         x = Math.round((x + Number.EPSILON) * 100) / 100;
         y = Math.round((y + Number.EPSILON) * 100) / 100;
-        if (stop != -1 || LinesStationsForBackground[line_kind][id]['TERMINAL'] == 'Y') {
+        if (stop != -1 || diagram_need_stop.includes(id)) {
             path += x.toString() + ',' + y.toString() + ' ';
             coordinates.push([x, y]);
         }
@@ -218,13 +220,17 @@ function mark_realtime_train_position(value, line_dir, train_kind, realtime_data
     let now_time_x_axis = null;
     let coordinates_all_station = [];
     let style = CarKind[train_kind] + "_mark";
+    const diagram_need_stop = find_diagram_need_to_stop(line_kind);
+
     if (typeof (style) == "undefined") {
         style = "special_mark";
     }
 
-    if (realtime_data.StationID > 0) 
+    if (realtime_data.StationID > 0)
         now_time_x_axis = get_now_time_x_axis(realtime_data.DelayTime);
+
     
+
     // 將所有車站的位置找出，如果是不會停靠的車站，X軸的點設定NaN缺值
     for (const [dsc, id, time, loc, stop, order] of value) {
         let x = time * 10 - 1200 * DiagramHours[0] + 50;
@@ -232,7 +238,7 @@ function mark_realtime_train_position(value, line_dir, train_kind, realtime_data
         x = Math.round((x + Number.EPSILON) * 100) / 100;
         y = Math.round((y + Number.EPSILON) * 100) / 100;
 
-        if (stop != -1 || LinesStationsForBackground[line_kind][id]['TERMINAL'] == 'Y')
+        if (stop != -1 || diagram_need_stop.includes(id))
             coordinates_all_station.push([x, y]);
     }
 
@@ -300,6 +306,7 @@ function calculate_distance(start, end) {
     return distance;
 }
 
+// 計算插補資料
 function interpolateArray(A, B) {
     const result = [];
 
@@ -333,17 +340,14 @@ function interpolateArray(A, B) {
     return result;
 }
 
-function get_now_time_x_axis(minus_time) {
-
-    // 取得現在時間
+// 取得現在時間，轉換成X軸
+function get_now_time_x_axis(minus_time) {    
     let currentTime = new Date();
-    // 減去10分鐘
     currentTime.setMinutes(currentTime.getMinutes() - minus_time);
 
     // 取得減去10分鐘後的台北時間
     var options = { timeZone: 'Asia/Taipei', hour12: false };
     var newTime = currentTime.toLocaleString('en-US', options);
-
 
     let hours = currentTime.getHours().toString().padStart(2, '0');
     let minutes = currentTime.getMinutes().toString().padStart(2, '0');
@@ -356,4 +360,14 @@ function get_now_time_x_axis(minus_time) {
     const x = SVG_X_Axis[`${hours}:${minutes}:${seconds}`].ax1 * 10 - 1200 * DiagramHours[0] + 50;
     // const x = SVG_X_Axis["15:30:00"].ax1 * 10 - 1200 * DiagramHours[0] + 50;
     return x;
+}
+
+// 找出運行圖中必須標註的車站
+function find_diagram_need_to_stop(line_kind) {
+    let diagram_need_stop = [];
+    for (item of LinesStationsForBackground[line_kind]) {
+        if (item['TERMINAL'] == 'Y')
+            diagram_need_stop.push(item['ID']);
+    }
+    return diagram_need_stop;
 }
