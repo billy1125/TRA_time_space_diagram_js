@@ -55,8 +55,16 @@ function initial_data() {
             initial_line_data(results[2]);
             OperationLines = results[3];
             CarKind = results[4];
-            // 在基本檔案載入完成後執行的函式
-            execute(results[5], results[6]);
+
+            // 等待最後兩個函式完成的Promise物件
+            return Promise.all([
+                results[5],
+                results[6]
+            ]);
+        })
+        .then(function (finalResults) {
+            // 在最後兩個函式完成後執行的程式碼
+            execute(finalResults[0], finalResults[1]);
         })
         .catch(function (error) {
             console.error(error);
@@ -80,11 +88,11 @@ function execute(json_data, live_json_data) {
 
         // 获取SVG圆形元素
         circle_blink = document.getElementsByTagName("circle");
-        for (const iterator of circle_blink) {           
+        for (const iterator of circle_blink) {
             iterator.setAttribute("opacity", "1");
         }
         setInterval(blink, 500);
-      
+
     }
     catch (error) {
         console.log(error);
@@ -140,13 +148,13 @@ function set_user_styles() {
 }
 
 function blink() {
-    for (const iterator of circle_blink) {           
+    for (const iterator of circle_blink) {
         if (iterator.getAttribute("opacity") === "0") {
             iterator.setAttribute("opacity", "1");
         } else if (iterator.getAttribute("opacity") === "1") {
             iterator.setAttribute("opacity", "0");
         }
-    }   
+    }
 }
 
 

@@ -8,6 +8,24 @@ svg {
     font-size: 14px
 }
 
+path {
+    transition-property: stroke-width;
+    transition-duration: 1s;
+    transition-timing-function: ease-out;
+    transition-delay: 0s;
+    stroke-linecap: round;
+    stroke-width: 2.5;
+    fill: none
+}
+
+path:hover {
+    stroke-width: 6
+}
+
+path:focus {
+    stroke-width: 6
+}
+
 .hour {
     fill: #2e2e1f
 }
@@ -95,6 +113,10 @@ svg {
     stroke: #00f
 }
 
+.local_express {
+    stroke: #00a6ff
+}
+
 .fu_hsing {
     stroke: #00bfff
 }
@@ -143,6 +165,10 @@ svg {
     fill: #00f
 }
 
+.local_express_mark {
+    fill: #00a6ff
+}
+
 .fu_hsing_mark {
     fill: #00bfff
 }
@@ -155,20 +181,30 @@ svg {
     fill: #ff1493
 }
 
-path {
-    transition-property: stroke-width;
-    transition-duration: 1s;
-    transition-timing-function: ease-out;
-    transition-delay: 0s;
-    stroke-linecap: round;
-    stroke-width: 2.5;
-    fill: none
+.zhongxing {
+    stroke: red;
 }
 
-path:hover {
-    stroke-width: 6
+.alishan_local {
+    stroke: orange;
 }
 
-path:focus {
-    stroke-width: 6
+.theme {
+    stroke: #ff1493;
+}
+
+.alishan {
+    stroke: #00f;
+}
+
+.chushan1 {
+    stroke: #faab82;
+}
+
+.chushan2 {
+    stroke: #faab82;
+}
+
+.kuaimu {
+    stroke: #20b2aa;
 }
