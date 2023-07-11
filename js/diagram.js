@@ -135,7 +135,7 @@ function set_path(line_kind, train_no, train_kind, value) {
     const diagram_need_stop = find_diagram_need_to_stop(line_kind);
 
     if (typeof (style) == "undefined") {
-        style = "special";
+        style = "others";
     }
 
     for (const [dsc, id, time, loc, stop, order] of value) {
