@@ -128,6 +128,7 @@ function finish_draw() {
     }
 }
 
+// 設定使用者自訂色系
 function set_user_styles() {
     const user_data = JSON.parse(localStorage.getItem("user_styles"));
 
@@ -136,10 +137,10 @@ function set_user_styles() {
             Object.entries(value).forEach(([k, v]) => {
                 const elements = document.getElementsByClassName(k);
                 for (const iterator of elements) {
-                    if (key in ["text_styles", "train_mark_kind"])
-                        iterator.style.fill = v;
-                    else
-                        iterator.style.stroke = v;
+                    if (key == "fills")
+                        iterator.style.fill = v[1];
+                    else if (key == "strokes")
+                        iterator.style.stroke = v[1];
                 }
 
             })
@@ -147,6 +148,7 @@ function set_user_styles() {
     }
 }
 
+// 列車位置閃動
 function blink() {
     for (const iterator of circle_blink) {
         if (iterator.getAttribute("opacity") === "0") {
@@ -156,5 +158,3 @@ function blink() {
         }
     }
 }
-
-

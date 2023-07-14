@@ -95,8 +95,8 @@ function display_master() {
             add_button_td(row, "刪除", item.Train, true);
 
             // 車次欄位
-            // add_textbox_td(row, item.Train, "input-train-" + item.Train);
-            add_text_td(row, item.Train);
+            add_textbox_td(row, item.Train, "input-train-" + item.Train, "train_no");
+            // add_text_td(row, item.Train);
 
             // 順逆行欄位
             add_td_selection(row, line_dir_kind, "sel-dir-" + item.Train, true);
@@ -146,9 +146,9 @@ function display_detail(id) {
         add_td_selection(row, stations_kind, "sel-station-" + row_index, false);
         select_update("sel-station-" + row_index, item.Station);
         // 到站時間
-        add_textbox_td(row, item.ARRTime, "input-arrtime-" + row_index);
+        add_textbox_td(row, item.ARRTime, "input-arrtime-" + row_index, "time");
         // 離站時間
-        add_textbox_td(row, item.DEPTime, "input-deptime-" + row_index);
+        add_textbox_td(row, item.DEPTime, "input-deptime-" + row_index, "time");
     });
 }
 
@@ -328,7 +328,7 @@ function add_td_selection(row_element, selection_kind, dom_id, is_master) {
 }
 
 // 增加編輯文字框儲存格
-function add_textbox_td(row_element, input_text, dom_id) {
+function add_textbox_td(row_element, input_text, dom_id, kind) {
     const td = document.createElement('td');
     row_element.appendChild(td);
 
@@ -337,15 +337,22 @@ function add_textbox_td(row_element, input_text, dom_id) {
         input.setAttribute('id', dom_id);
     input.setAttribute('type', 'text');
     input.setAttribute('value', input_text);
-    input.addEventListener('focusout', function () {
-        const input_value = input.value;
-        var regex = /^([01]\d|2[0-3]):([0-5]\d):(00|30)$/;
-        if (regex.test(input_value) === true)
-            check_is_update(trains_data.selected_train_no, "detail");
-        else
-            window.alert("請輸入24小時制的時間，例如：12:39:30、18:56:00，並且秒僅能設定為00或30");
-    });
-
+    if (kind == "time") {
+        input.addEventListener('focusout', function () {
+            const input_value = input.value;
+            var regex = /^([01]\d|2[0-3]):([0-5]\d):(00|30)$/;
+            if (regex.test(input_value) === true)
+                check_is_update(trains_data.selected_train_no, "detail");
+            else
+                window.alert("請輸入24小時制的時間，例如：12:39:30、18:56:00，並且秒僅能設定為00或30");
+        });
+    }
+    else if (kind == "train_no") {
+        input.addEventListener('focusout', function () {
+            const input_value = input.value;
+            check_is_update(input_value, "master");
+        });
+    }
     td.appendChild(input);
 }
 
@@ -367,18 +374,29 @@ function check_is_update(train_no, kind) {
     if (kind == "master") {
         const train_data = trains_data.trains_map.get(train_no);
         const data_in_class = {
+            "Train": train_data.Train,
             "LineDir": train_data.LineDir,
             "Line": train_data.Line,
             "CarClass": train_data.CarClass
         };
 
         const data_on_ui = {
+            "Train": document.getElementById("input-train-" + train_no).value,
             "LineDir": document.getElementById("sel-dir-" + train_no).value,
             "Line": document.getElementById("sel-line-" + train_no).value,
             "CarClass": document.getElementById("sel-car-" + train_no).value
         };
-        if (deepCompare(data_in_class, data_on_ui) == false) {
-            trains_data.update_train(train_no, data_on_ui.LineDir, data_on_ui.Line, data_on_ui.CarClass);
+        if (train_no == data_on_ui.Train) {
+            if (deepCompare(data_in_class, data_on_ui) == false) {
+                trains_data.update_train(train_no, data_on_ui.LineDir, data_on_ui.Line, data_on_ui.CarClass);
+            }
+        }
+        else {
+            trains_data.update_train_number(train_no, data_on_ui.Train, data_on_ui.LineDir, data_on_ui.Line, data_on_ui.CarClass);
+            document.getElementById("input-train-" + train_no).id = "input-train-" + data_on_ui.Train;
+            document.getElementById("sel-dir-" + train_no).id = "input-train-" + data_on_ui.Train;
+            document.getElementById("sel-line-" + train_no).id = "input-train-" + data_on_ui.Train;
+            document.getElementById("sel-car-" + train_no).id = "input-train-" + data_on_ui.Train;
         }
     }
     else if (kind == "detail") {

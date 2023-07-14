@@ -9,10 +9,6 @@ svg {
     font-size: 14px
 }
 
-.hour {
-    fill: #2e2e1f
-}
-
 path {
     transition-property: stroke-width;
     transition-duration: 1s;
@@ -32,6 +28,10 @@ path:focus {
 }
 
 /* 主要基線 */
+.hour {
+    fill: #2e2e1f
+}
+
 .hour_midnight {
     fill: red;
     font-weight: 700
@@ -125,7 +125,7 @@ path:focus {
 }
 
 .ordinary, .theme {
-    stroke: #ff1493
+    stroke: #006055
 }
 
 .special {
@@ -182,7 +182,7 @@ path:focus {
 }
 
 .ordinary_mark {
-    fill: #ff1493
+    fill: #006055
 }
 
 .special_mark {
@@ -190,5 +190,5 @@ path:focus {
 }
 
 .others_mark {
-    stroke: grey;
+    fill: grey;
 }

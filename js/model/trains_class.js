@@ -53,6 +53,11 @@ class TrainsClass {
         for (const iterator of this.trains_map.values())
             this.master_train_info.push({ "Train": iterator.Train, "LineDir": iterator.LineDir, "Line": iterator.Line, "CarClass": iterator.CarClass });
 
+        // 排序車次資料
+        this.master_train_info.sort(function (a, b) {
+            return a["Train"] - b["Train"];
+        });
+
         for (const iterator of this.trains_map.values())
             this.detail_time_info.push({ "Train": iterator.Train, "TimeTable": iterator.TimeInfos });
     }
@@ -96,6 +101,7 @@ class TrainsClass {
             return false;
     }
 
+    // 更新車次
     update_train(train_no, line_dir, line, car_class) {
         if (this.trains_map.has(train_no)) {
             const train_data = this.trains_map.get(train_no);
@@ -107,6 +113,24 @@ class TrainsClass {
                 "CarClass": car_class,
                 "TimeInfos": train_data.TimeInfos
             });
+            this.update_tables();
+            return true;
+        } else
+            return false;
+    }
+
+    // 更新車次(修改車次號)
+    update_train_number(train_no, new_train_no, line_dir, line, car_class) {
+        if (this.trains_map.has(train_no)) {
+            const train_data = this.trains_map.get(train_no);
+            this.trains_map.set(new_train_no, {
+                "Train": new_train_no,
+                "LineDir": line_dir,
+                "Line": line,
+                "CarClass": car_class,
+                "TimeInfos": train_data.TimeInfos
+            });
+            this.delete_train_map(train_no);
             this.update_tables();
             return true;
         } else

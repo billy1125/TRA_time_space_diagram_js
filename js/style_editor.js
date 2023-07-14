@@ -1,158 +1,130 @@
-const text_styles = {
-    hour: "小時文字",
-    hour_midnight: "午夜12點文字",
-    min10: "10分鐘文字",
-    min30: "30分鐘文字",
-    station: "車站文字",
-    station_noserv: "未服務車站文字"
+let fills = {
+    hour: ["小時文字", ""],
+    min10: ["10分鐘文字", ""],
+    min30: ["30分鐘文字", ""],
+    station: ["車站文字", ""],
+    station_noserv: ["未服務車站文字", ""],
+    hour_midnight: ["午夜12點文字", ""],
+    taroko_mark: ["太魯閣號", ""],
+    puyuma_mark: ["普悠瑪號", ""],
+    tze_chiang_mark: ["PP自強號", ""],
+    tze_chiang_diesel_mark: ["柴油自強號", ""],
+    emu3000_mark: ["EMU3000", ""],
+    chu_kuang_mark: ["莒光號", ""],
+    local_mark: ["區間車", ""],
+    local_express_mark: ["區間快", ""],
+    ordinary_mark: ["普快車", ""],
+    special_mark: ["專列、自由座", ""],
+    others_mark: ["其他", ""]
 };
 
-const line_styles = {
-    hour_line: "小時線",
-    hour_midnight_line: "午夜12點線",
-    min10_line: "10分鐘線",
-    min30_line: "30分鐘線",
-    station_line: "車站線",
-    station_noserv_line: "未服務車站線"
+let strokes = {
+    hour_line: ["小時線", ""],
+    min10_line: ["10分鐘線", ""],
+    min30_line: ["30分鐘線", ""],
+    station_line: ["車站線", ""],
+    station_noserv_line: ["未服務車站線", ""],
+    taroko: ["太魯閣號", ""],
+    puyuma: ["普悠瑪號", ""],
+    tze_chiang: ["PP自強號", ""],
+    tze_chiang_diesel: ["柴油自強號", ""],
+    emu3000: ["EMU3000", ""],
+    chu_kuang: ["莒光號", ""],
+    local: ["區間車", ""],
+    local_express: ["區間快", ""],
+    ordinary: ["普快車", ""],
+    special: ["專列、自由座", ""],
+    others: ["其他", ""],
+    zhongxing: ["中興號", ""],
+    alishan_local: ["區間車", ""],
+    theme: ["主題式列車", ""],
+    alishan: ["阿里山號", ""],
+    chushan1: ["祝客(祝山線)", ""],
+    kuaimu: ["檜木車廂", ""],
+    direct: ["直達車次", ""],
+    skip_stop: ["間格停靠車次(跳蛙車次)", ""],
+    all_stop: ["每站皆停車次", ""]
 };
-
-const train_kind = {
-    taroko: "太魯閣號",
-    puyuma: "普悠瑪號",
-    tze_chiang: "PP自強號",
-    tze_chiang_diesel: "柴油自強號",
-    emu1200: "EMU1200",
-    emu300: "EMU300",
-    emu3000: "EMU3000",
-    chu_kuang: "莒光號",
-    local: "區間車",
-    fu_hsing: "復興號",
-    ordinary: "普快車",
-    ordinary: "其他"
-};
-
-const train_mark_kind = {
-    taroko_mark: "太魯閣",
-    puyuma_mark: "普悠瑪",
-    tze_chiang_mark: "PP自強",
-    tze_chiang_diesel_mark: "柴油自強",
-    emu1200_mark: "EMU1200",
-    emu300_mark: "EMU300",
-    emu3000_mark: "EMU3000",
-    chu_kuang_mark: "莒光號",
-    local_mark: "區間車",
-    fu_hsing_mark: "復興號",
-    ordinary_mark: "普快車",
-    ordinary_mark: "其他"
-};
-
-const user_styles = ["text_styles", "line_styles", "train_kind", "train_mark_kind"];
 
 initial_style_editor();
 
+// 頁面初始化
 function initial_style_editor() {
-    set_colorpicker("text_settings", text_styles, "fill");
-    set_colorpicker("base_line_settings", line_styles, "stroke");
-    set_colorpicker("train_kind_settings", train_kind, "stroke");
-    set_colorpicker("train_mark_kind_settings", train_mark_kind, "fill");
-
     if (localStorage.getItem("user_styles") !== null) {
         const user_data = JSON.parse(localStorage.getItem("user_styles"));
-        set_user_setting(user_data);
+        strokes = user_data["strokes"];
+        fills = user_data["fills"];
     }
+    else {
+        load_default_css(strokes, "stroke");
+        load_default_css(fills, "fill");
+    }
+    set_color_legend(strokes, "stroke");
+    set_color_legend(fills, "fill");
 }
 
-function set_colorpicker(target_id, data, kind) {
+// 讀取預設運行圖CSS的樣式設定
+function load_default_css(data, kind) {
     Object.entries(data).forEach(([key, value]) => {
+        const style = document.getElementsByClassName(key);
+        const color_lengend = window.getComputedStyle(style[0]);
 
-        const container = document.getElementById(target_id);
-
-        const div1 = document.createElement('div');
-        // divElement.id = 'myDiv';
-        div1.className = 'form-group';
-        const label = document.createElement('label');
-        label.className = 'col-md-4 control-label';
-        label.textContent = value;
-        div1.appendChild(label);
-
-        const div2 = document.createElement('div');
-        div2.className = 'col-md-8';
-
-        const span = document.createElement('span');
-        span.className = key;
-        span.setAttribute('id', key);
-        div2.appendChild(span);
-
-        const input = document.createElement('input');
-        input.setAttribute('type', "color");
-        input.setAttribute('id', key + "_setting");
-        div2.appendChild(input);
-        div1.appendChild(div2);
-
-        container.appendChild(div1);
-
-        const element = document.getElementById(key);
-        const style = window.getComputedStyle(element);
-        let color = null;
         if (kind == "fill")
-            color = rgbToHex(style.fill);
+            color_setting = rgbToHex(color_lengend.fill);
         else if (kind == "stroke")
-            color = rgbToHex(style.stroke);
+            color_setting = rgbToHex(color_lengend.stroke);
 
-        document.getElementById(key + "_setting").value = color;
+        value[1] = color_setting;
     })
 }
 
+// 將顏色設定到按鍵中
+function set_color_legend(data, kind) {
+    Object.entries(data).forEach(([key, value]) => {
+        const button = document.getElementById(key);
+        const picker = new Picker({
+            parent: button,
+            color: value[1],
+            alpha: false,
+            popup: 'bottom',
+            onChange: function (color) {
+                button.style.backgroundColor = color.rgbaString();
+            },
+            onClose: function (color) {
+                button.textContent = `${value[0]} ${rgbToHex(color.rgbString())}`;
+                value[1] = rgbToHex(color.rgbString());
+            },
+        });
+        button.textContent = `${value[0]} ${value[1]}`;
+    })
+}
+
+// RGB色碼轉HEX色碼
 function rgbToHex(rgb) {
-    // 提取RGB颜色代码中的R、G、B值
-    var match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
     if (!match) {
         return "";
     }
-
-    var r = parseInt(match[1], 10);
-    var g = parseInt(match[2], 10);
-    var b = parseInt(match[3], 10);
-
-    // 将R、G、B值转换为十六进制字符串
-    var hex = "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
-
+    const r = parseInt(match[1], 10);
+    const g = parseInt(match[2], 10);
+    const b = parseInt(match[3], 10);
+    const hex = "#" + ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
     return hex;
 }
 
-function set_user_setting(data) {
-    for (const iterator of user_styles) {
-        Object.entries(data[iterator]).forEach(([key, v]) => {
-            document.getElementById(key + "_setting").value = v;
-        })
-    }
-}
-
-
-
 // 儲存個人的樣式設定
-function save() {
+function save_to_localStorage() {
     let output = {};
-    output[user_styles[0]] = styles_to_localstorage("text_styles", text_styles);
-    output[user_styles[1]] = styles_to_localstorage("line_styles", line_styles);
-    output[user_styles[2]] = styles_to_localstorage("train_kind", train_kind);
-    output[user_styles[3]] = styles_to_localstorage("train_mark_kind", train_mark_kind);
+    output["fills"] = fills;
+    output["strokes"] = strokes;
 
     var jsonText = JSON.stringify(output);
     window.localStorage.setItem("user_styles", jsonText);
 
     if (localStorage.getItem("user_styles") !== null) {
         window.alert("儲存成功！");
+        window.location.reload();
     }
-}
-
-function styles_to_localstorage(id, data) {
-    let output = {};
-    Object.entries(data).forEach(([key, value]) => {
-        const option = document.getElementById(key + "_setting");
-        output[key] = option.value;
-    })
-    return output;
 }
 
 // 恢復原來的樣式設定
@@ -161,5 +133,41 @@ function set_default() {
     if (results == true) {
         window.localStorage.removeItem("user_styles");
         window.location.reload();
+    }
+}
+
+// 檔案存檔按鍵
+function save_to_file() {
+    save_to_localStorage();
+    let json_object = JSON.parse(localStorage.getItem("user_styles"));
+    const json = JSON.stringify(json_object);
+    download(json, 'user_styles.json', 'text/plain');
+}
+
+// 下載檔案的函式
+function download(content, fileName, contentType) {
+    var a = document.createElement("a");
+    var file = new Blob([content], { type: contentType });
+    a.href = URL.createObjectURL(file);
+    a.download = fileName;
+    a.click();
+}
+
+// 使用者操作與上傳檔案按鍵
+function file_upload() {
+    const file_input = document.getElementById("file_input");
+    const file = file_input.files[0];
+
+    if (typeof file !== "undefined") {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+            const contents = event.target.result;
+            var jsonText = JSON.stringify(JSON.parse(contents));
+            window.localStorage.setItem("user_styles", jsonText);
+            initial_style_editor();
+        };
+        reader.readAsText(file);
+    } else {
+        window.alert("請選擇正確的JSON格式檔案！");
     }
 }

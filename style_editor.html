@@ -1,72 +1,182 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-tw">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>運行圖線條顏色設定</title>
+    <title id="web_name"></title>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=" utf-8" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="index,follow" />
+    <meta name="author" content="呂卓勳 Cho Husn Lu" />
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="Shortcut Icon" type="image/x-icon" href="favicon.ico" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" type="text/css" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        #color_lengend {
+            font-size: medium;
+            font-weight: bold;
+            color: white;
+        }
+    </style>
 </head>
 
 <body style="padding-top:40px;">
+
     <div id="navbar"></div>
 
     <div class="jumbotron">
         <div class="container text-center">
-            <h1>運行圖線條顏色設定 <span class="badge">測試中</span></h1>
+            <form class="form-inline">
+                <div class="form-group">
+                    <h1><b>運行圖預設標色</b> <span class="badge">測試中</span></h1>
+                    <p>以下列出本站使用的車種與車次預設標色的Hex碼，供使用者進行參考。</p>
+                    <input type="file" id="file_input" accept=".json" class="form-control">
+                    <a class="btn btn-success btn-lg" onclick="file_upload()">讀取標色JSON檔</a>
+                    <a class="btn btn-primary btn-lg" onclick="save_to_localStorage()">儲存標色至瀏覽器</a>
+                    <a class="btn btn-primary btn-lg" onclick="save_to_file()">儲存標色至檔案</a>
+                    <a class="btn btn-danger btn-lg" onclick="set_default()">恢復預設標色</a>
+                </div>
+            </form>
         </div>
     </div>
 
-    <div class="container bg-1 text-center">
+    <div class="container-fluid bg-1 text-center">
         <div class="row">
-            <button href="#" class="btn btn-primary btn-lg" type="button" onclick="save()">儲存顏色設定</button>
-            <button href="#" class="btn btn-success btn-lg" type="button" onclick="set_default()">重新設定預設值</button>
-        </div>
-        <div class="row">
-            <div class="col-md-6 portfolio-item">
-                <h2>運行圖文字設定</h2>
-                <form class="form-horizontal" id="text_settings"></form>
+            <div class="col-md-3 portfolio-item">
+                <h2>台鐵車種標線</h2>
+                <div id="color_lengend">
+                    <div id="taroko" class="alert alert-default" role="alert"></div>
+                    <div id="puyuma" class="alert alert-default" role="alert"></div>
+                    <div id="tze_chiang" class="alert alert-default" role="alert"></div>
+                    <div id="tze_chiang_diesel" class="alert alert-default" role="alert"></div>
+                    <div id="emu3000" class="alert alert-default" role="alert"></div>
+                    <div id="chu_kuang" class="alert alert-default" role="alert"></div>
+                    <div id="local" class="alert alert-default" role="alert"></div>
+                    <div id="local_express" class="alert alert-default" role="alert"></div>
+                    <div id="ordinary" class="alert alert-default" role="alert"></div>
+                    <div id="special" class="alert alert-default" role="alert"></div>
+                    <div id="others" class="alert alert-default" role="alert"></div>
+                </div>
             </div>
-            <div class="col-md-6 portfolio-item">
-                <h2>運行圖底圖基線設定</h2>
-                <form class="form-horizontal" id="base_line_settings"></form>
+            <div class="col-md-3 portfolio-item">
+                <h2>台鐵車種位置點</h2>
+                <div id="color_lengend">
+                    <div id="taroko_mark" class="alert alert-default" role="alert"></div>
+                    <div id="puyuma_mark" class="alert alert-default" role="alert"></div>
+                    <div id="tze_chiang_mark" class="alert alert-default" role="alert"></div>
+                    <div id="tze_chiang_diesel_mark" class="alert alert-default" role="alert"></div>
+                    <div id="emu3000_mark" class="alert alert-default" role="alert"></div>
+                    <div id="chu_kuang_mark" class="alert alert-default" role="alert"></div>
+                    <div id="local_mark" class="alert alert-default" role="alert"></div>
+                    <div id="local_express_mark" class="alert alert-default" role="alert"></div>
+                    <div id="ordinary_mark" class="alert alert-default" role="alert"></div>
+                    <div id="special_mark" class="alert alert-default" role="alert"></div>
+                    <div id="others_mark" class="alert alert-default" role="alert"></div>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6 portfolio-item">
-                <h2>車次線設定</h2>
-                <form class="form-horizontal" id="train_kind_settings"></form>
+            <div class="col-md-3 portfolio-item">
+                <h2>阿里山森林鐵路</h2>
+                <div id="color_lengend">
+                    <div id="zhongxing" class="alert alert-default" role="alert"></div>
+                    <div id="alishan_local" class="alert alert-default" role="alert"></div>
+                    <div id="theme" class="alert alert-default" role="alert"></div>
+                    <div id="alishan" class="alert alert-default" role="alert"></div>
+                    <div id="chushan1" class="alert alert-default" role="alert"></div>
+                    <div id="kuaimu" class="alert alert-default" role="alert"></div>
+                </div>
+                <h2>台灣高鐵</h2>
+                <div id="color_lengend">
+                    <div id="direct" class="alert alert-default" role="alert"></div>
+                    <div id="skip_stop" class="alert alert-default" role="alert"></div>
+                    <div id="all_stop" class="alert alert-default" role="alert"></div>
+                </div>
             </div>
-            <div class="col-md-6 portfolio-item">
-                <h2>列車位置標註設定</h2>
-                <form class="form-horizontal" id="train_mark_kind_settings"></form>
+            <div class="col-md-3 portfolio-item">
+                <h2>運行圖文字</h2>
+                <div id="color_lengend">
+                    <div id="hour" class="alert alert-default" role="alert"></div>
+                    <div id="min10" class="alert alert-default" role="alert"></div>
+                    <div id="min30" class="alert alert-default" role="alert"></div>
+                    <div id="station" class="alert alert-default" role="alert"></div>
+                    <div id="station_noserv" class="alert alert-default" role="alert"></div>
+                    <div id="hour_midnight" class="alert alert-default" role="alert"></div>
+                </div>
+                <h2>運行圖底圖基線</h2>
+                <div id="color_lengend">
+                    <div id="hour_line" class="alert alert-default" role="alert"></div>
+                    <div id="min10_line" class="alert alert-default" role="alert"></div>
+                    <div id="min30_line" class="alert alert-default" role="alert"></div>
+                    <div id="station_line" class="alert alert-default" role="alert"></div>
+                    <div id="station_noserv_line" class="alert alert-default" role="alert"></div>
+                </div>
             </div>
         </div>
         <br>
-
         <footer class="alert alert-warning" role="alert"></footer>
     </div>
-
+    <div class="taroko"></div>
+    <div class="puyuma"></div>
+    <div class="tze_chiang"></div>
+    <div class="tze_chiang_diesel"></div>
+    <div class="emu3000"></div>
+    <div class="chu_kuang"></div>
+    <div class="local"></div>
+    <div class="local_express"></div>
+    <div class="ordinary"></div>
+    <div class="special"></div>
+    <div class="others"></div>
+    <div class="taroko_mark"></div>
+    <div class="puyuma_mark"></div>
+    <div class="tze_chiang_mark"></div>
+    <div class="tze_chiang_diesel_mark"></div>
+    <div class="emu3000_mark"></div>
+    <div class="chu_kuang_mark"></div>
+    <div class="local_mark"></div>
+    <div class="local_express_mark"></div>
+    <div class="ordinary_mark"></div>
+    <div class="special_mark"></div>
+    <div class="others_mark"></div>
+    <div class="zhongxing"></div>
+    <div class="alishan_local"></div>
+    <div class="theme"></div>
+    <div class="alishan"></div>
+    <div class="chushan1"></div>
+    <div class="kuaimu"></div>
+    <div class="direct"></div>
+    <div class="skip_stop"></div>
+    <div class="all_stop"></div>
+    <div class="hour"></div>
+    <div class="min10"></div>
+    <div class="min30"></div>
+    <div class="station"></div>
+    <div class="station_noserv"></div>
+    <div class="hour_midnight"></div>
+    <div class="hour_line"></div>
+    <div class="min10_line"></div>
+    <div class="min30_line"></div>
+    <div class="station_line"></div>
+    <div class="station_noserv_line"></div>
 </body>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://unpkg.com/vanilla-picker-mini@1"></script>
 <script src="js/style_editor.js"></script>
-<script src="js/web_config.js" defer></script>
-<script src="js/web.js" defer></script>
+<script src="js/web_config.js"></script>
 
 <script type="text/javascript">
     $(document).ready(function () {
         $('#web_name').append(web_name)
-        $('#today_date').append(today_date)
         $("meta[name='description']").attr("content", description)
         $("meta[name='keywords']").attr("content", keywords)
         $('footer').append(footer)
         $("#navbar").load("navbar.html")
-
-
     })
+
 </script>
 
 </html>
