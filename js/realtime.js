@@ -1,7 +1,13 @@
+// GRT參數取得 
 const url = new URL(location.href);
 const line_kind = url.searchParams.get('lineKind');
+const formattedDate = url.searchParams.get('formattedDate');
+const loadRealtimeParam = url.searchParams.get('realtime');
+
+// 公用變數
 let date = null;
 let circle_blink = null;
+let loadRealtimeData = loadRealtimeParam === 'true';
 
 // 定義基本檔案相依性
 const dependencies = [
@@ -16,14 +22,16 @@ const dependencies = [
 // 開始載入基本檔案
 loadDependencies();
 
-// 異步載入函式
+// 載入所有相依並初始化資料
 async function loadDependencies() {
-    // 迭代相依性並載入它們
-    for (const dependency of dependencies) {
-        await loadScript(dependency);
+    try {
+        for (const dep of dependencies) {
+            await loadScript(dep);
+        }
+        await initial_data();
+    } catch (err) {
+        console.error("載入腳本時發生錯誤:", err);
     }
-    // 所有基本檔案載入完成後，執行其他函式    
-    initial_data();
 }
 
 // 載入 JavaScript 檔案的函式
@@ -38,38 +46,40 @@ function loadScript(file) {
 }
 
 // 讀取所有資料檔
-function initial_data() {
-    date = getFormattedDate();
-    Promise.all([
-        readJSONFile(file1),
-        readJSONFile(file2),
-        readJSONFile(file3),
-        readJSONFile(file4),
-        readJSONFile(file5),
-        readJSONFile("data/realtime_diagram/" + date + ".json"),
-        readJSONFile("data/realtime_trains.json")
-    ])
-        .then(function (results) {
-            Route = results[0];
-            SVG_X_Axis = results[1];
-            initial_line_data(results[2]);
-            OperationLines = results[3];
-            CarKind = results[4];
+async function initial_data() {
+    try {
+        date = formattedDate ? formattedDate : getFormattedDate(); // 如果 URL 中有指定日期則使用，否則用今天
 
-            // 等待最後兩個函式完成的Promise物件
-            return Promise.all([
-                results[5],
-                results[6]
-            ]);
-        })
-        .then(function (finalResults) {
-            // 在最後兩個函式完成後執行的程式碼
-            execute(finalResults[0], finalResults[1]);
-        })
-        .catch(function (error) {
-            console.error(error);
-        });
+        const baseFiles = [
+            readJSONFile(file1),
+            readJSONFile(file2),
+            readJSONFile(file3),
+            readJSONFile(file4),
+            readJSONFile(file5),
+            readJSONFile(`data/realtime_diagram/${date}.json`)
+        ];
+
+        if (loadRealtimeData) {
+            baseFiles.push(readJSONFile("data/realtime_trains.json"));
+        }
+
+        const results = await Promise.all(baseFiles);
+
+        Route = results[0];
+        SVG_X_Axis = results[1];
+        initial_line_data(results[2]);
+        OperationLines = results[3];
+        CarKind = results[4];
+
+        const realtimeDiagram = results[5];
+        const realtimeTrains = results[6]; // 可能是 undefined（如果沒載）
+
+        execute(realtimeDiagram, realtimeTrains);
+    } catch (err) {
+        console.error("初始化資料時發生錯誤:", err);
+    }
 }
+
 
 // 程式執行函式
 function execute(json_data, live_json_data) {
@@ -80,19 +90,25 @@ function execute(json_data, live_json_data) {
     });
 
     try {
-        const all_trains_data = json_to_trains_data(json_data, '', line_kind);  // 將JSON檔案轉換成時間空間資料
-        const realtime_trains = mark_realtime_trains(live_json_data);           // 即時列車位置資料轉換
-        draw_diagram_background(line_kind);                                     // 繪製運行圖底圖(基礎時間與車站線)
-        draw_train_path(all_trains_data, realtime_trains);                      // 繪製每一個車次線
+        const all_trains_data = json_to_trains_data(json_data, '', line_kind);  // 將JSON轉換成時間空間資料
+        let realtime_trains = null;
+
+        if (loadRealtimeData && live_json_data) {
+            realtime_trains = mark_realtime_trains(live_json_data); // 即時列車位置資料轉換
+        }
+
+        draw_diagram_background(line_kind);                         // 繪製運行圖底圖
+        draw_train_path(all_trains_data, realtime_trains);          // 繪製每一個車次線
         set_user_styles();
 
-        // 获取SVG圆形元素
-        circle_blink = document.getElementsByTagName("circle");
-        for (const iterator of circle_blink) {
-            iterator.setAttribute("opacity", "1");
+        if (realtime_trains) {
+            // 開始閃動效果
+            circle_blink = document.getElementsByTagName("circle");
+            for (const iterator of circle_blink) {
+                iterator.setAttribute("opacity", "1");
+            }
+            setInterval(blink, 500);
         }
-        setInterval(blink, 500);
-
     }
     catch (error) {
         console.log(error);
@@ -101,6 +117,7 @@ function execute(json_data, live_json_data) {
         finish_draw();
     }
 }
+
 
 // 標記即時列車位置
 function mark_realtime_trains(live_json_data) {
